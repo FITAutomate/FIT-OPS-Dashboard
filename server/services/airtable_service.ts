@@ -273,9 +273,7 @@ export async function updateProject(recordId: string, updates: Partial<ProjectIn
     if (updates.name && syncableFields.includes('dealname')) {
       fields['Project Name'] = updates.name;
     }
-    if (updates.budget !== undefined && syncableFields.includes('amount')) {
-      fields['Budget'] = updates.budget;
-    }
+    // Note: Budget not synced - Airtable has 'Budget Hours' which is different from deal amount
     if (updates.startDate && syncableFields.includes('closedate')) {
       fields['Start Date'] = updates.startDate;
     }

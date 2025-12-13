@@ -125,10 +125,10 @@ export const config = {
     },
     /**
      * Fields that are "syncable" - can be updated on existing records
+     * Note: 'amount' excluded - Airtable has 'Budget Hours' which is different from deal amount
      */
     syncableFields: [
       'dealname',
-      'amount',
       'closedate',
       'description'
     ],
