@@ -76,6 +76,33 @@ export interface ClientInput {
   phone?: string;
   jobTitle?: string;
   companyName?: string;
+  companyId?: string; // Airtable record ID for linked company
+}
+
+/**
+ * Interface representing a Company record synced from HubSpot.
+ */
+export interface CompanyRecord {
+  id: string;
+  hubspotCompanyId: string;
+  name: string;
+  website?: string;
+  industry?: string;
+  companySize?: string;
+  country?: string;
+  status?: string;
+}
+
+/**
+ * Interface for creating/updating a company
+ */
+export interface CompanyInput {
+  hubspotCompanyId: string;
+  name: string;
+  website?: string;
+  industry?: string;
+  companySize?: string;
+  country?: string;
 }
 
 /**
@@ -500,5 +527,171 @@ export async function getAllProjects(): Promise<Project[]> {
   } catch (error: any) {
     console.error(`Airtable API Error (getAllProjects): ${error.message}`);
     throw new Error(`Failed to fetch projects from Airtable: ${error.message}`);
+  }
+}
+
+// ============================================
+// COMPANY OPERATIONS (UPSERT SUPPORT)
+// ============================================
+
+/**
+ * Finds a company record by its associated HubSpot Company ID.
+ * 
+ * @param {string} hubspotCompanyId - The HubSpot Company ID to search for
+ * @returns {Promise<CompanyRecord | null>} The company if found, null otherwise
+ */
+export async function findCompanyByHubSpotId(hubspotCompanyId: string): Promise<CompanyRecord | null> {
+  try {
+    const records = await base(config.airtable.tables.companies)
+      .select({
+        filterByFormula: `{HubSpot Company ID} = '${hubspotCompanyId}'`,
+        maxRecords: 1
+      })
+      .firstPage();
+
+    if (records.length === 0) {
+      return null;
+    }
+
+    const record = records[0];
+    return {
+      id: record.id,
+      hubspotCompanyId: (record.get('HubSpot Company ID') as string) || '',
+      name: (record.get('Company Name') as string) || '',
+      website: (record.get('Website') as string) || undefined,
+      industry: (record.get('Industry') as string) || undefined,
+      companySize: (record.get('Company Size') as string) || undefined,
+      country: (record.get('Country / Region') as string) || undefined,
+      status: (record.get('Status') as string) || undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (findCompanyByHubSpotId): ${error.message}`);
+    return null;
+  }
+}
+
+/**
+ * Creates a new company record in Airtable.
+ * 
+ * @param {CompanyInput} company - The company data to create
+ * @returns {Promise<CompanyRecord>} The created company with its Airtable ID
+ * @throws {Error} If creation fails
+ */
+export async function createCompany(company: CompanyInput): Promise<CompanyRecord> {
+  try {
+    const fields: Record<string, any> = {
+      'HubSpot Company ID': company.hubspotCompanyId,
+      'Company Name': company.name
+    };
+
+    if (company.website) {
+      fields['Website'] = company.website;
+    }
+    if (company.industry) {
+      fields['Industry'] = company.industry;
+    }
+    if (company.companySize) {
+      fields['Company Size'] = company.companySize;
+    }
+    if (company.country) {
+      fields['Country / Region'] = company.country;
+    }
+
+    const record = await base(config.airtable.tables.companies).create(fields);
+
+    console.log(`[Airtable] Created company: ${company.name} (HubSpot ID: ${company.hubspotCompanyId})`);
+
+    return {
+      id: record.id,
+      hubspotCompanyId: company.hubspotCompanyId,
+      name: company.name,
+      website: company.website,
+      industry: company.industry,
+      companySize: company.companySize,
+      country: company.country
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (createCompany): ${error.message}`);
+    throw new Error(`Failed to create company in Airtable: ${error.message}`);
+  }
+}
+
+/**
+ * Updates an existing company record in Airtable.
+ * 
+ * @param {string} recordId - The Airtable record ID to update
+ * @param {Partial<CompanyInput>} updates - The fields to update
+ * @returns {Promise<CompanyRecord>} The updated company
+ * @throws {Error} If update fails
+ */
+export async function updateCompany(recordId: string, updates: Partial<CompanyInput>): Promise<CompanyRecord> {
+  try {
+    const fields: Record<string, any> = {};
+    const syncableFields = config.fieldMapping.syncableCompanyFields;
+
+    if (updates.name && syncableFields.includes('name')) {
+      fields['Company Name'] = updates.name;
+    }
+    if (updates.website && syncableFields.includes('domain')) {
+      fields['Website'] = updates.website;
+    }
+    if (updates.industry && syncableFields.includes('industry')) {
+      fields['Industry'] = updates.industry;
+    }
+    if (updates.companySize && syncableFields.includes('numberofemployees')) {
+      fields['Company Size'] = updates.companySize;
+    }
+    if (updates.country && syncableFields.includes('country')) {
+      fields['Country / Region'] = updates.country;
+    }
+
+    const record = await base(config.airtable.tables.companies).update(recordId, fields);
+
+    console.log(`[Airtable] Updated company: ${recordId}`);
+
+    return {
+      id: record.id,
+      hubspotCompanyId: (record.get('HubSpot Company ID') as string) || '',
+      name: (record.get('Company Name') as string) || '',
+      website: (record.get('Website') as string) || undefined,
+      industry: (record.get('Industry') as string) || undefined,
+      companySize: (record.get('Company Size') as string) || undefined,
+      country: (record.get('Country / Region') as string) || undefined,
+      status: (record.get('Status') as string) || undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (updateCompany): ${error.message}`);
+    throw new Error(`Failed to update company in Airtable: ${error.message}`);
+  }
+}
+
+/**
+ * Links a contact to a company in Airtable.
+ * 
+ * @param {string} contactId - The Airtable contact record ID
+ * @param {string} companyId - The Airtable company record ID to link
+ * @returns {Promise<Client>} The updated contact
+ */
+export async function linkContactToCompany(contactId: string, companyId: string): Promise<Client> {
+  try {
+    const record = await base(config.airtable.tables.contacts).update(contactId, {
+      'Company': [companyId]
+    });
+
+    console.log(`[Airtable] Linked contact ${contactId} to company ${companyId}`);
+
+    return {
+      id: record.id,
+      hubspotContactId: (record.get('HubSpot Contact ID') as string) || '',
+      firstName: (record.get('First Name') as string) || '',
+      lastName: (record.get('Last Name') as string) || '',
+      email: (record.get('Email') as string) || '',
+      phone: (record.get('Phone') as string) || undefined,
+      jobTitle: (record.get('Role / Title') as string) || undefined,
+      companyName: undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (linkContactToCompany): ${error.message}`);
+    throw new Error(`Failed to link contact to company: ${error.message}`);
   }
 }
