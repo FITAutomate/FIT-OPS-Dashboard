@@ -39,16 +39,16 @@ const DEMO_CONTACTS = [
 ];
 
 const DEMO_PROJECTS = [
-  { name: 'Digital Transformation Initiative', status: 'Active', budget: 150000, startDate: '2025-01-15', contactIndex: 0 },
-  { name: 'Cloud Migration Phase 1', status: 'Active', budget: 85000, startDate: '2025-02-01', contactIndex: 1 },
-  { name: 'Financial Systems Upgrade', status: 'Planning', budget: 200000, startDate: '2025-03-01', contactIndex: 3 },
-  { name: 'Process Automation Suite', status: 'Active', budget: 120000, startDate: '2025-01-20', contactIndex: 6 },
+  { name: 'Digital Transformation Initiative', status: 'In Progress', budget: 150000, startDate: '2025-01-15', contactIndex: 0 },
+  { name: 'Cloud Migration Phase 1', status: 'In Progress', budget: 85000, startDate: '2025-02-01', contactIndex: 1 },
+  { name: 'Financial Systems Upgrade', status: 'Planned', budget: 200000, startDate: '2025-03-01', contactIndex: 3 },
+  { name: 'Process Automation Suite', status: 'In Progress', budget: 120000, startDate: '2025-01-20', contactIndex: 6 },
   { name: 'Data Analytics Platform', status: 'Completed', budget: 95000, startDate: '2024-10-01', contactIndex: 4 },
-  { name: 'Customer Portal Development', status: 'Active', budget: 175000, startDate: '2025-02-15', contactIndex: 9 },
-  { name: 'Security Compliance Audit', status: 'Planning', budget: 45000, startDate: '2025-04-01', contactIndex: 10 },
-  { name: 'Mobile App Development', status: 'Active', budget: 130000, startDate: '2025-01-10', contactIndex: 7 },
-  { name: 'Research Data Management', status: 'Planning', budget: 180000, startDate: '2025-05-01', contactIndex: 12 },
-  { name: 'Integration Platform Build', status: 'Active', budget: 110000, startDate: '2025-02-20', contactIndex: 2 }
+  { name: 'Customer Portal Development', status: 'In Progress', budget: 175000, startDate: '2025-02-15', contactIndex: 9 },
+  { name: 'Security Compliance Audit', status: 'Planned', budget: 45000, startDate: '2025-04-01', contactIndex: 10 },
+  { name: 'Mobile App Development', status: 'In Progress', budget: 130000, startDate: '2025-01-10', contactIndex: 7 },
+  { name: 'Research Data Management', status: 'Planned', budget: 180000, startDate: '2025-05-01', contactIndex: 12 },
+  { name: 'Integration Platform Build', status: 'In Progress', budget: 110000, startDate: '2025-02-20', contactIndex: 2 }
 ];
 
 interface CreatedRecord {
@@ -59,7 +59,7 @@ interface CreatedRecord {
 interface SeedResult {
   companies: { created: number; skipped: number };
   contacts: { created: number; skipped: number };
-  projects: { created: number; skipped: number };
+  projects: { created: number; skipped: number; updated: number };
   logs: string[];
 }
 
@@ -162,10 +162,11 @@ async function seedContacts(companyIds: CreatedRecord[], logs: string[]): Promis
   return { records, created, skipped };
 }
 
-async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promise<{ created: number; skipped: number }> {
+async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promise<{ created: number; skipped: number; updated: number }> {
   logs.push('Creating Projects...');
   let created = 0;
   let skipped = 0;
+  let updated = 0;
 
   for (const project of DEMO_PROJECTS) {
     try {
@@ -174,7 +175,24 @@ async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promis
         .firstPage();
 
       if (existing.length > 0) {
-        logs.push(`  Skipped: "${project.name}" already exists`);
+        const existingRecord = existing[0];
+        const existingBudget = existingRecord.get('Budget');
+        const existingStatus = existingRecord.get('Status');
+        const existingStartDate = existingRecord.get('Start Date');
+        
+        if (!existingBudget || !existingStatus || !existingStartDate) {
+          const updateFields: Record<string, any> = {};
+          if (!existingBudget) updateFields['Budget'] = project.budget;
+          if (!existingStatus) updateFields['Status'] = project.status;
+          if (!existingStartDate) updateFields['Start Date'] = project.startDate;
+          
+          await base('Projects').update(existingRecord.id, updateFields);
+          logs.push(`  Updated: "${project.name}" with missing fields: ${Object.keys(updateFields).join(', ')}`);
+          updated++;
+          continue;
+        }
+        
+        logs.push(`  Skipped: "${project.name}" already exists with all fields`);
         skipped++;
         continue;
       }
@@ -182,7 +200,9 @@ async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promis
       const contactId = contactIds[project.contactIndex]?.id;
       const fields: Record<string, any> = {
         'Project Name': project.name,
+        'Budget': project.budget,
         'Start Date': project.startDate,
+        'Status': project.status,
         'Description': `Demo project: ${project.name}`
       };
 
@@ -196,14 +216,14 @@ async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promis
       created++;
     } catch (error: any) {
       const statusCode = error.statusCode || error.status || 'unknown';
-      logs.push(`  Error creating ${project.name}: [${statusCode}] ${error.message}`);
+      logs.push(`  Error creating/updating ${project.name}: [${statusCode}] ${error.message}`);
       if (error.data) {
         logs.push(`    Details: ${JSON.stringify(error.data)}`);
       }
     }
   }
 
-  return { created, skipped };
+  return { created, skipped, updated };
 }
 
 export async function seedDemoData(): Promise<SeedResult> {
