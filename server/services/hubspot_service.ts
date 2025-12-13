@@ -24,15 +24,23 @@ export interface Deal {
 }
 
 /**
+ * Interface for contact details
+ */
+export interface ContactDetails {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  jobTitle?: string;
+  companyName?: string;
+}
+
+/**
  * Interface for deal with full associations
  */
 export interface DealWithAssociations extends Deal {
-  contacts?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  }[];
+  contacts?: ContactDetails[];
   company?: {
     id: string;
     name: string;
@@ -223,6 +231,34 @@ export async function createDealWebhookSubscription(webhookUrl: string): Promise
     success: true,
     message: `Webhook URL ready: ${webhookUrl}. Configure in HubSpot Developer Portal.`
   };
+}
+
+/**
+ * Fetches full contact details from HubSpot by contact ID.
+ * 
+ * @param {string} contactId - The HubSpot Contact ID
+ * @returns {Promise<ContactDetails | null>} Contact details or null if not found
+ */
+export async function getContactDetails(contactId: string): Promise<ContactDetails | null> {
+  try {
+    const contact = await hubspotClient.crm.contacts.basicApi.getById(
+      contactId,
+      config.hubspot.contactProperties
+    );
+
+    return {
+      id: contact.id,
+      firstName: contact.properties.firstname || '',
+      lastName: contact.properties.lastname || '',
+      email: contact.properties.email || '',
+      phone: contact.properties.phone || undefined,
+      jobTitle: contact.properties.jobtitle || undefined,
+      companyName: contact.properties.company || undefined
+    };
+  } catch (error: any) {
+    console.error(`HubSpot API Error (getContactDetails): ${error.message}`);
+    return null;
+  }
 }
 
 /**

@@ -48,6 +48,34 @@ export interface ProjectInput {
   startDate?: string;
   description?: string;
   companyId?: string;
+  clientId?: string; // Linked record to Clients table
+}
+
+/**
+ * Interface representing a Client record in Airtable (Contacts table).
+ */
+export interface Client {
+  id: string;
+  hubspotContactId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  jobTitle?: string;
+  companyName?: string;
+}
+
+/**
+ * Interface for creating/updating a client
+ */
+export interface ClientInput {
+  hubspotContactId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  jobTitle?: string;
+  companyName?: string;
 }
 
 /**
@@ -200,6 +228,10 @@ export async function createProject(project: ProjectInput): Promise<Project> {
     if (project.companyId) {
       fields['Company'] = [project.companyId];
     }
+    // Link to client if provided
+    if (project.clientId) {
+      fields['Client'] = [project.clientId];
+    }
 
     const record = await base(config.airtable.tables.projects).create(fields);
 
@@ -274,6 +306,174 @@ export async function updateProject(recordId: string, updates: Partial<ProjectIn
   } catch (error: any) {
     console.error(`Airtable API Error (updateProject): ${error.message}`);
     throw new Error(`Failed to update project in Airtable: ${error.message}`);
+  }
+}
+
+/**
+ * Updates an existing project with a client link.
+ * 
+ * @param {string} projectId - The Airtable project record ID
+ * @param {string} clientId - The Airtable client record ID to link
+ * @returns {Promise<Project>} The updated project
+ */
+export async function linkProjectToClient(projectId: string, clientId: string): Promise<Project> {
+  try {
+    const record = await base(config.airtable.tables.projects).update(projectId, {
+      'Client': [clientId]
+    });
+
+    console.log(`[Airtable] Linked project ${projectId} to client ${clientId}`);
+
+    return {
+      id: record.id,
+      name: (record.get('Project Name') as string) || '',
+      hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
+      budget: parseFloat((record.get('Budget') as string) || '0'),
+      status: (record.get('Status') as string) || 'Active',
+      startDate: (record.get('Start Date') as string) || '',
+      description: (record.get('Description') as string) || '',
+      companyId: (record.get('Company') as string[])?.join(',') || undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (linkProjectToClient): ${error.message}`);
+    throw new Error(`Failed to link project to client: ${error.message}`);
+  }
+}
+
+// ============================================
+// CLIENT/CONTACT OPERATIONS (UPSERT SUPPORT)
+// ============================================
+
+/**
+ * Finds a client record by its associated HubSpot Contact ID.
+ * 
+ * @param {string} hubspotContactId - The HubSpot Contact ID to search for
+ * @returns {Promise<Client | null>} The client if found, null otherwise
+ */
+export async function findClientByHubSpotContactId(hubspotContactId: string): Promise<Client | null> {
+  try {
+    const records = await base(config.airtable.tables.contacts)
+      .select({
+        filterByFormula: `{HubSpot Contact ID} = '${hubspotContactId}'`,
+        maxRecords: 1
+      })
+      .firstPage();
+
+    if (records.length === 0) {
+      return null;
+    }
+
+    const record = records[0];
+    return {
+      id: record.id,
+      hubspotContactId: (record.get('HubSpot Contact ID') as string) || '',
+      firstName: (record.get('First Name') as string) || '',
+      lastName: (record.get('Last Name') as string) || '',
+      email: (record.get('Email') as string) || '',
+      phone: (record.get('Phone') as string) || undefined,
+      jobTitle: (record.get('Job Title') as string) || undefined,
+      companyName: (record.get('Company Name') as string) || undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (findClientByHubSpotContactId): ${error.message}`);
+    return null;
+  }
+}
+
+/**
+ * Creates a new client record in Airtable's Contacts table.
+ * 
+ * @param {ClientInput} client - The client data to create
+ * @returns {Promise<Client>} The created client with its Airtable ID
+ * @throws {Error} If creation fails
+ */
+export async function createClient(client: ClientInput): Promise<Client> {
+  try {
+    const fields: Record<string, any> = {
+      'HubSpot Contact ID': client.hubspotContactId,
+      'First Name': client.firstName,
+      'Last Name': client.lastName,
+      'Email': client.email
+    };
+
+    // Add optional fields if provided
+    if (client.phone) {
+      fields['Phone'] = client.phone;
+    }
+    if (client.jobTitle) {
+      fields['Job Title'] = client.jobTitle;
+    }
+    if (client.companyName) {
+      fields['Company Name'] = client.companyName;
+    }
+
+    const record = await base(config.airtable.tables.contacts).create(fields);
+
+    console.log(`[Airtable] Created client: ${client.firstName} ${client.lastName} (HubSpot ID: ${client.hubspotContactId})`);
+
+    return {
+      id: record.id,
+      hubspotContactId: client.hubspotContactId,
+      firstName: client.firstName,
+      lastName: client.lastName,
+      email: client.email,
+      phone: client.phone,
+      jobTitle: client.jobTitle,
+      companyName: client.companyName
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (createClient): ${error.message}`);
+    throw new Error(`Failed to create client in Airtable: ${error.message}`);
+  }
+}
+
+/**
+ * Updates an existing client record in Airtable.
+ * 
+ * @param {string} recordId - The Airtable record ID to update
+ * @param {Partial<ClientInput>} updates - The fields to update
+ * @returns {Promise<Client>} The updated client
+ * @throws {Error} If update fails
+ */
+export async function updateClient(recordId: string, updates: Partial<ClientInput>): Promise<Client> {
+  try {
+    const fields: Record<string, any> = {};
+    const syncableFields = config.fieldMapping.syncableContactFields;
+
+    // Map input fields to Airtable field names (only syncable fields)
+    if (updates.firstName && syncableFields.includes('firstname')) {
+      fields['First Name'] = updates.firstName;
+    }
+    if (updates.lastName && syncableFields.includes('lastname')) {
+      fields['Last Name'] = updates.lastName;
+    }
+    if (updates.email && syncableFields.includes('email')) {
+      fields['Email'] = updates.email;
+    }
+    if (updates.phone && syncableFields.includes('phone')) {
+      fields['Phone'] = updates.phone;
+    }
+    if (updates.jobTitle && syncableFields.includes('jobtitle')) {
+      fields['Job Title'] = updates.jobTitle;
+    }
+
+    const record = await base(config.airtable.tables.contacts).update(recordId, fields);
+
+    console.log(`[Airtable] Updated client: ${recordId}`);
+
+    return {
+      id: record.id,
+      hubspotContactId: (record.get('HubSpot Contact ID') as string) || '',
+      firstName: (record.get('First Name') as string) || '',
+      lastName: (record.get('Last Name') as string) || '',
+      email: (record.get('Email') as string) || '',
+      phone: (record.get('Phone') as string) || undefined,
+      jobTitle: (record.get('Job Title') as string) || undefined,
+      companyName: (record.get('Company Name') as string) || undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (updateClient): ${error.message}`);
+    throw new Error(`Failed to update client in Airtable: ${error.message}`);
   }
 }
 

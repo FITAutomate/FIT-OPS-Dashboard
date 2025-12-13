@@ -3,16 +3,31 @@
  * 
  * Orchestrates the UPSERT logic between HubSpot and Airtable.
  * Handles the business logic for creating and updating records based on webhook events.
+ * 
+ * Two-Part UPSERT Logic:
+ * 1. Contact UPSERT: Create/update the client record in Airtable first
+ * 2. Project UPSERT: Create/update the project record with a link to the client
  */
 
 import { config } from './config';
-import { getDealWithAssociations, type DealWithAssociations } from './hubspot_service';
+import { 
+  getDealWithAssociations, 
+  getContactDetails,
+  type DealWithAssociations,
+  type ContactDetails
+} from './hubspot_service';
 import { 
   findProjectByHubSpotDealId, 
   createProject, 
   updateProject,
+  linkProjectToClient,
+  findClientByHubSpotContactId,
+  createClient,
+  updateClient,
   type Project,
-  type ProjectInput 
+  type ProjectInput,
+  type Client,
+  type ClientInput
 } from './airtable_service';
 
 /**
@@ -23,6 +38,18 @@ export interface SyncResult {
   action: 'created' | 'updated' | 'skipped' | 'error';
   dealId: string;
   projectId?: string;
+  clientId?: string;
+  message: string;
+}
+
+/**
+ * Result of a contact sync operation
+ */
+export interface ContactSyncResult {
+  success: boolean;
+  action: 'created' | 'updated' | 'skipped' | 'error';
+  contactId: string;
+  clientId?: string;
   message: string;
 }
 
@@ -45,11 +72,133 @@ export interface HubSpotWebhookPayload {
 }
 
 /**
+ * Syncs a HubSpot contact to an Airtable client record.
+ * 
+ * @param {string} hubspotContactId - The HubSpot Contact ID
+ * @returns {Promise<ContactSyncResult>} The result of the contact sync
+ */
+export async function syncContactToClient(
+  hubspotContactId: string
+): Promise<ContactSyncResult> {
+  try {
+    console.log(`[Sync] Starting contact sync for HubSpot Contact ID: ${hubspotContactId}`);
+
+    // Fetch full contact details from HubSpot
+    const contact = await getContactDetails(hubspotContactId);
+    
+    if (!contact) {
+      return {
+        success: false,
+        action: 'error',
+        contactId: hubspotContactId,
+        message: `Contact ${hubspotContactId} not found in HubSpot`
+      };
+    }
+
+    console.log(`[Sync] Found contact: ${contact.firstName} ${contact.lastName}`);
+
+    // Check if client already exists in Airtable
+    const existingClient = await findClientByHubSpotContactId(hubspotContactId);
+
+    if (existingClient) {
+      // UPDATE existing client
+      console.log(`[Sync] Existing client found: ${existingClient.id}`);
+      
+      const updates = buildClientUpdates(contact, existingClient);
+      
+      if (Object.keys(updates).length === 0) {
+        return {
+          success: true,
+          action: 'skipped',
+          contactId: hubspotContactId,
+          clientId: existingClient.id,
+          message: 'No contact fields changed'
+        };
+      }
+
+      const updatedClient = await updateClient(existingClient.id, updates);
+      
+      return {
+        success: true,
+        action: 'updated',
+        contactId: hubspotContactId,
+        clientId: updatedClient.id,
+        message: `Updated client with fields: ${Object.keys(updates).join(', ')}`
+      };
+    } else {
+      // CREATE new client
+      const clientInput = buildClientFromContact(contact);
+      const newClient = await createClient(clientInput);
+
+      return {
+        success: true,
+        action: 'created',
+        contactId: hubspotContactId,
+        clientId: newClient.id,
+        message: `Created new client: ${newClient.firstName} ${newClient.lastName}`
+      };
+    }
+  } catch (error: any) {
+    console.error(`[Sync] Error syncing contact ${hubspotContactId}:`, error.message);
+    return {
+      success: false,
+      action: 'error',
+      contactId: hubspotContactId,
+      message: error.message
+    };
+  }
+}
+
+/**
+ * Builds a ClientInput object from HubSpot contact details.
+ */
+function buildClientFromContact(contact: ContactDetails): ClientInput {
+  return {
+    hubspotContactId: contact.id,
+    firstName: contact.firstName,
+    lastName: contact.lastName,
+    email: contact.email,
+    phone: contact.phone,
+    jobTitle: contact.jobTitle,
+    companyName: contact.companyName
+  };
+}
+
+/**
+ * Builds client updates by comparing HubSpot contact with existing client.
+ */
+function buildClientUpdates(
+  contact: ContactDetails,
+  existingClient: Client
+): Partial<ClientInput> {
+  const updates: Partial<ClientInput> = {};
+  const syncableFields = config.fieldMapping.syncableContactFields;
+
+  if (syncableFields.includes('firstname') && contact.firstName !== existingClient.firstName) {
+    updates.firstName = contact.firstName;
+  }
+  if (syncableFields.includes('lastname') && contact.lastName !== existingClient.lastName) {
+    updates.lastName = contact.lastName;
+  }
+  if (syncableFields.includes('email') && contact.email !== existingClient.email) {
+    updates.email = contact.email;
+  }
+  if (syncableFields.includes('phone') && contact.phone !== existingClient.phone) {
+    updates.phone = contact.phone;
+  }
+  if (syncableFields.includes('jobtitle') && contact.jobTitle !== existingClient.jobTitle) {
+    updates.jobTitle = contact.jobTitle;
+  }
+
+  return updates;
+}
+
+/**
  * Main UPSERT function for syncing HubSpot deals to Airtable projects.
  * 
- * Logic:
- * - CASE A (Insert): Deal is "Closed Won" and no Airtable record exists -> Create new project
- * - CASE B (Update): Airtable record exists -> Update with syncable fields only
+ * TWO-PART LOGIC:
+ * 1. CONTACT UPSERT (First): Process associated contacts, create/update in Airtable
+ * 2. PROJECT UPSERT (Second): Create/update project with link to the client
  * 
  * @param {string} hubspotDealId - The HubSpot Deal ID from the webhook
  * @param {string} propertyChanged - The property that triggered the webhook (optional)
@@ -76,6 +225,29 @@ export async function syncDealToProject(
 
     console.log(`[Sync] Found deal: ${deal.name} (Stage: ${deal.stageId})`);
 
+    // ==========================================
+    // PART A: CONTACT UPSERT (First)
+    // ==========================================
+    let linkedClientId: string | undefined;
+    
+    if (deal.contacts && deal.contacts.length > 0) {
+      const primaryContact = deal.contacts[0];
+      console.log(`[Sync] Processing primary contact: ${primaryContact.firstName} ${primaryContact.lastName}`);
+      
+      const contactResult = await syncContactToClient(primaryContact.id);
+      
+      if (contactResult.success && contactResult.clientId) {
+        linkedClientId = contactResult.clientId;
+        console.log(`[Sync] Contact synced successfully, clientId: ${linkedClientId}`);
+      } else {
+        console.log(`[Sync] Contact sync ${contactResult.action}: ${contactResult.message}`);
+      }
+    }
+
+    // ==========================================
+    // PART B: PROJECT UPSERT (Linked - Second)
+    // ==========================================
+    
     // Step 2: Check if project already exists in Airtable
     const existingProject = await findProjectByHubSpotDealId(hubspotDealId);
 
@@ -89,6 +261,7 @@ export async function syncDealToProject(
           action: 'skipped',
           dealId: hubspotDealId,
           projectId: existingProject.id,
+          clientId: linkedClientId,
           message: 'Updates disabled in config'
         };
       }
@@ -96,12 +269,22 @@ export async function syncDealToProject(
       // Build update payload with only syncable fields
       const updates = buildProjectUpdates(deal, existingProject);
       
+      // Link client to project if not already linked
+      if (linkedClientId) {
+        try {
+          await linkProjectToClient(existingProject.id, linkedClientId);
+        } catch (e) {
+          console.log(`[Sync] Client link may already exist or failed`);
+        }
+      }
+      
       if (Object.keys(updates).length === 0) {
         return {
           success: true,
           action: 'skipped',
           dealId: hubspotDealId,
           projectId: existingProject.id,
+          clientId: linkedClientId,
           message: 'No syncable fields changed'
         };
       }
@@ -113,6 +296,7 @@ export async function syncDealToProject(
         action: 'updated',
         dealId: hubspotDealId,
         projectId: updatedProject.id,
+        clientId: linkedClientId,
         message: `Updated project with fields: ${Object.keys(updates).join(', ')}`
       };
 
@@ -126,12 +310,13 @@ export async function syncDealToProject(
           success: true,
           action: 'skipped',
           dealId: hubspotDealId,
+          clientId: linkedClientId,
           message: `Deal stage '${deal.stage}' does not trigger project creation`
         };
       }
 
-      // Build project from deal data
-      const projectInput = buildProjectFromDeal(deal);
+      // Build project from deal data WITH client link
+      const projectInput = buildProjectFromDeal(deal, linkedClientId);
       const newProject = await createProject(projectInput);
 
       return {
@@ -139,7 +324,8 @@ export async function syncDealToProject(
         action: 'created',
         dealId: hubspotDealId,
         projectId: newProject.id,
-        message: `Created new project: ${newProject.name}`
+        clientId: linkedClientId,
+        message: `Created new project: ${newProject.name}` + (linkedClientId ? ` (linked to client ${linkedClientId})` : '')
       };
     }
   } catch (error: any) {
@@ -158,9 +344,10 @@ export async function syncDealToProject(
  * Uses the field mapping from config to translate properties.
  * 
  * @param {DealWithAssociations} deal - The HubSpot deal with associations
+ * @param {string} clientId - Optional Airtable client ID to link
  * @returns {ProjectInput} The project input ready for Airtable creation
  */
-function buildProjectFromDeal(deal: DealWithAssociations): ProjectInput {
+function buildProjectFromDeal(deal: DealWithAssociations, clientId?: string): ProjectInput {
   const stageId = deal.stageId.toLowerCase();
   const status = config.projectStatusMapping[stageId] || 'Active';
 
@@ -170,7 +357,8 @@ function buildProjectFromDeal(deal: DealWithAssociations): ProjectInput {
     budget: deal.amount || 0,
     status: status,
     startDate: deal.closeDate ? deal.closeDate.split('T')[0] : undefined,
-    description: deal.description || buildProjectDescription(deal)
+    description: deal.description || buildProjectDescription(deal),
+    clientId: clientId
   };
 }
 

@@ -55,6 +55,18 @@ export const config = {
       'notes_last_updated'
     ],
     /**
+     * Contact properties to fetch for sync operations
+     */
+    contactProperties: [
+      'firstname',
+      'lastname',
+      'email',
+      'phone',
+      'jobtitle',
+      'company',
+      'hs_object_id'
+    ],
+    /**
      * Properties that trigger a sync when changed
      */
     syncTriggerProperties: [
@@ -100,6 +112,18 @@ export const config = {
       description: 'Description'
     },
     /**
+     * Contact -> Client field mapping
+     * Key: HubSpot property | Value: Airtable field name
+     */
+    contactToClient: {
+      firstname: 'First Name',
+      lastname: 'Last Name',
+      email: 'Email',
+      phone: 'Phone',
+      jobtitle: 'Job Title',
+      company: 'Company Name'
+    },
+    /**
      * Fields that are "syncable" - can be updated on existing records
      */
     syncableFields: [
@@ -109,10 +133,21 @@ export const config = {
       'description'
     ],
     /**
+     * Contact fields that are "syncable" - can be updated on existing client records
+     */
+    syncableContactFields: [
+      'firstname',
+      'lastname',
+      'email',
+      'phone',
+      'jobtitle'
+    ],
+    /**
      * Read-only fields in Airtable (never updated by sync)
      */
     readOnlyFields: [
       'HubSpot Deal ID', // The linking field - never changed
+      'HubSpot Contact ID',
       'Created Date'
     ]
   },
