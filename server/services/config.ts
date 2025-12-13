@@ -67,6 +67,19 @@ export const config = {
       'hs_object_id'
     ],
     /**
+     * Company properties to fetch for sync operations
+     */
+    companyProperties: [
+      'name',
+      'domain',
+      'industry',
+      'numberofemployees',
+      'country',
+      'website',
+      'description',
+      'hs_object_id'
+    ],
+    /**
      * Properties that trigger a sync when changed
      */
     syncTriggerProperties: [
@@ -144,11 +157,33 @@ export const config = {
       // Note: 'company' is a linked record, not synced directly
     ],
     /**
+     * Company -> Companies field mapping
+     * Key: HubSpot property | Value: Airtable field name
+     */
+    companyToCompanies: {
+      name: 'Company Name',
+      domain: 'Website',
+      industry: 'Industry',
+      numberofemployees: 'Company Size',
+      country: 'Country / Region'
+    },
+    /**
+     * Company fields that are "syncable" - can be updated on existing company records
+     */
+    syncableCompanyFields: [
+      'name',
+      'domain',
+      'industry',
+      'numberofemployees',
+      'country'
+    ],
+    /**
      * Read-only fields in Airtable (never updated by sync)
      */
     readOnlyFields: [
-      'HubSpot Deal ID', // The linking field - never changed
+      'HubSpot Deal ID',
       'HubSpot Contact ID',
+      'HubSpot Company ID',
       'Created Date'
     ]
   },
