@@ -2,6 +2,12 @@ import { Search, Bell, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+/**
+ * Topbar Component
+ * 
+ * Renders the top navigation bar containing global search, notifications, and help actions.
+ * Sticks to the top of the main content area.
+ */
 export function Topbar() {
   return (
     <header className="h-16 border-b border-border bg-white/80 backdrop-blur-md sticky top-0 z-10 px-8 flex items-center justify-between">
@@ -16,10 +22,10 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full hover:bg-primary/5">
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full hover:bg-primary/5 cursor-pointer">
           <HelpCircle className="w-5 h-5" />
         </Button>
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full hover:bg-primary/5 relative">
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary rounded-full hover:bg-primary/5 relative cursor-pointer">
           <Bell className="w-5 h-5" />
           <span className="absolute top-2 right-2 w-2 h-2 bg-accent rounded-full border-2 border-white"></span>
         </Button>

@@ -12,6 +12,12 @@ const NAV_ITEMS = [
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
+/**
+ * Sidebar Component
+ * 
+ * Displays the main navigation menu and user profile summary.
+ * Uses a fixed position layout with a custom gradient background.
+ */
 export function Sidebar() {
   const [location] = useLocation();
 

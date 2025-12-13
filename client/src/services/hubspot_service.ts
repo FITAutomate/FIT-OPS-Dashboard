@@ -1,9 +1,54 @@
+/**
+ * Service for interacting with the HubSpot API via the backend.
+ * Handles fetching and processing Deal records.
+ */
+export const hubspotService = {
+  /**
+   * Fetches all deals from the backend API.
+   * 
+   * @returns {Promise<Deal[]>} A promise that resolves to an array of Deal objects.
+   * @throws {Error} If the API request fails.
+   */
+  getDeals: async (): Promise<Deal[]> => {
+    // In a real full-stack app, this would be:
+    // const response = await fetch('/api/deals');
+    // if (!response.ok) throw new Error('Failed to fetch deals');
+    // return response.json();
+
+    // MOCK IMPLEMENTATION FOR FRONTEND PROTOTYPE
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return MOCK_DEALS;
+  },
+
+  /**
+   * Fetches deals filtered by a specific stage.
+   * 
+   * @param {string} stage - The deal stage to filter by.
+   * @returns {Promise<Deal[]>} A promise that resolves to an array of filtered Deal objects.
+   */
+  getDealsByStage: async (stage: string): Promise<Deal[]> => {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    return MOCK_DEALS.filter(d => d.stage === stage);
+  }
+};
+
+// --- MOCK DATA ---
+
+/**
+ * Interface representing a Deal record from HubSpot.
+ */
 export interface Deal {
+  /** Unique identifier for the deal */
   id: string;
+  /** Name of the deal */
   name: string;
+  /** Monetary value of the deal */
   amount: number;
+  /** Current stage in the pipeline */
   stage: "New" | "Discovery" | "Proposal" | "Negotiation" | "Closed Won" | "Closed Lost";
+  /** Expected or actual close date (ISO string) */
   closeDate: string;
+  /** ID of the associated company */
   companyId: string;
 }
 
@@ -49,15 +94,3 @@ export const MOCK_DEALS: Deal[] = [
     companyId: "rec5"
   }
 ];
-
-export const hubspotService = {
-  getDeals: async (): Promise<Deal[]> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return MOCK_DEALS;
-  },
-
-  getDealsByStage: async (stage: string): Promise<Deal[]> => {
-    await new Promise(resolve => setTimeout(resolve, 600));
-    return MOCK_DEALS.filter(d => d.stage === stage);
-  }
-};

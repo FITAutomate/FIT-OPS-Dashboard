@@ -9,6 +9,9 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 
+/**
+ * Animation variants for the container to stagger children entry.
+ */
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -19,16 +22,31 @@ const container = {
   }
 };
 
+/**
+ * Animation variants for individual dashboard items (slide up + fade in).
+ */
 const item = {
   hidden: { y: 20, opacity: 0 },
   show: { y: 0, opacity: 1 }
 };
 
+/**
+ * Dashboard Page Component
+ * 
+ * The main landing view of the CRM. Aggregates data from multiple services:
+ * - KPIs (Total Pipeline, Active Clients)
+ * - Recent Deals List (HubSpot)
+ * - Upcoming Events Widget (Outlook)
+ * - Recent Companies Grid (Airtable)
+ * 
+ * Uses TanStack Query for data fetching and caching.
+ */
 export default function Dashboard() {
   const { data: companies } = useQuery({ queryKey: ['companies'], queryFn: airtableService.getCompanies });
   const { data: deals } = useQuery({ queryKey: ['deals'], queryFn: hubspotService.getDeals });
   const { data: events } = useQuery({ queryKey: ['events'], queryFn: outlookService.getCalendarEvents });
 
+  // Calculate KPIs
   const totalPipelineValue = deals?.reduce((sum, deal) => sum + deal.amount, 0) || 0;
   const activeClients = companies?.filter(c => c.status === "Active Client").length || 0;
   const upcomingEvents = events?.filter(e => new Date(e.start) > new Date()).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()).slice(0, 3) || [];

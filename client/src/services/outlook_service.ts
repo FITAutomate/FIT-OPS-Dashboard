@@ -1,10 +1,53 @@
+/**
+ * Service for interacting with the Microsoft Graph API via the backend.
+ * Handles fetching calendar events.
+ */
+export const outlookService = {
+  /**
+   * Fetches upcoming calendar events.
+   * 
+   * @returns {Promise<CalendarEvent[]>} A promise that resolves to an array of CalendarEvent objects.
+   * @throws {Error} If the API request fails.
+   */
+  getCalendarEvents: async (): Promise<CalendarEvent[]> => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    return MOCK_EVENTS;
+  },
+
+  /**
+   * Creates a new calendar event.
+   * 
+   * @param {Omit<CalendarEvent, "id">} event - The event data to create.
+   * @returns {Promise<CalendarEvent>} A promise that resolves to the created event with an ID.
+   */
+  createEvent: async (event: Omit<CalendarEvent, "id">): Promise<CalendarEvent> => {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const newEvent = { ...event, id: `evt${Math.random().toString(36).substr(2, 9)}` };
+    MOCK_EVENTS.push(newEvent);
+    return newEvent;
+  }
+};
+
+// --- MOCK DATA ---
+
+/**
+ * Interface representing a Calendar Event from Outlook/Exchange.
+ */
 export interface CalendarEvent {
+  /** Unique identifier for the event */
   id: string;
+  /** Subject/Title of the event */
   subject: string;
+  /** Start date-time (ISO string) */
   start: string;
+  /** End date-time (ISO string) */
   end: string;
+  /** Event location or meeting link */
   location: string;
+  /** List of attendee email addresses */
   attendees: string[];
+  /** Classification of the event type */
   type: "meeting" | "call" | "deadline";
 }
 
@@ -46,23 +89,3 @@ export const MOCK_EVENTS: CalendarEvent[] = [
     type: "deadline"
   }
 ];
-
-// Placeholder service for Microsoft Graph API
-// To implement real auth:
-// 1. Register app in Azure AD
-// 2. Request scopes: Calendars.Read, Calendars.ReadWrite
-// 3. Use MSAL.js for OAuth 2.0 flow
-export const outlookService = {
-  getCalendarEvents: async (): Promise<CalendarEvent[]> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    return MOCK_EVENTS;
-  },
-
-  createEvent: async (event: Omit<CalendarEvent, "id">): Promise<CalendarEvent> => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    const newEvent = { ...event, id: `evt${Math.random().toString(36).substr(2, 9)}` };
-    MOCK_EVENTS.push(newEvent);
-    return newEvent;
-  }
-};
