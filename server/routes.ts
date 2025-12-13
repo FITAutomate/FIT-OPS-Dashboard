@@ -292,5 +292,38 @@ export async function registerRoutes(
     });
   });
 
+  // ============================================
+  // SEED DEMO DATA
+  // ============================================
+
+  /**
+   * POST /api/seed/demo
+   * Seeds Airtable with demo companies, contacts, and projects.
+   */
+  app.post('/api/seed/demo', async (req: Request, res: Response) => {
+    try {
+      console.log('[Seed] Starting demo data seeding...');
+      const { seedDemoData } = await import('./services/seed_service');
+      const result = await seedDemoData();
+      
+      console.log('[Seed] Complete:', JSON.stringify(result, null, 2));
+      res.json({
+        success: true,
+        summary: {
+          companies: result.companies,
+          contacts: result.contacts,
+          projects: result.projects
+        },
+        logs: result.logs
+      });
+    } catch (error: any) {
+      console.error('[Seed] Error:', error);
+      res.status(500).json({ 
+        error: 'Seeding failed', 
+        message: error.message 
+      });
+    }
+  });
+
   return httpServer;
 }
