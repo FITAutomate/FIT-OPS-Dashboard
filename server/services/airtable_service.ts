@@ -364,6 +364,37 @@ export async function linkProjectToClient(projectId: string, clientId: string): 
   }
 }
 
+/**
+ * Updates an existing project with a company link.
+ * 
+ * @param {string} projectId - The Airtable project record ID
+ * @param {string} companyId - The Airtable company record ID to link
+ * @returns {Promise<Project>} The updated project
+ */
+export async function linkProjectToCompany(projectId: string, companyId: string): Promise<Project> {
+  try {
+    const record = await base(config.airtable.tables.projects).update(projectId, {
+      'Company': [companyId]
+    });
+
+    console.log(`[Airtable] Linked project ${projectId} to company ${companyId}`);
+
+    return {
+      id: record.id,
+      name: (record.get('Project Name') as string) || '',
+      hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
+      budget: 0,
+      status: (record.get('Status') as string) || 'Active',
+      startDate: (record.get('Start Date') as string) || '',
+      description: (record.get('Description') as string) || '',
+      companyId: (record.get('Company') as string[])?.join(',') || undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (linkProjectToCompany): ${error.message}`);
+    throw new Error(`Failed to link project to company: ${error.message}`);
+  }
+}
+
 // ============================================
 // CLIENT/CONTACT OPERATIONS (UPSERT SUPPORT)
 // ============================================

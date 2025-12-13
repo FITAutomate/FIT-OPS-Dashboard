@@ -37,14 +37,23 @@ export interface ContactDetails {
 }
 
 /**
+ * Interface for company details
+ */
+export interface CompanyDetails {
+  id: string;
+  name: string;
+  domain?: string;
+  industry?: string;
+  numberOfEmployees?: string;
+  country?: string;
+}
+
+/**
  * Interface for deal with full associations
  */
 export interface DealWithAssociations extends Deal {
   contacts?: ContactDetails[];
-  company?: {
-    id: string;
-    name: string;
-  };
+  company?: CompanyDetails;
 }
 
 /**
@@ -194,14 +203,20 @@ export async function getDealWithAssociations(dealId: string): Promise<DealWithA
           try {
             const company = await hubspotClient.crm.companies.basicApi.getById(
               companyId,
-              ['name']
+              config.hubspot.companyProperties
             );
             result.company = {
               id: company.id,
-              name: company.properties.name || ''
+              name: company.properties.name || '',
+              domain: company.properties.domain || company.properties.website || undefined,
+              industry: company.properties.industry || undefined,
+              numberOfEmployees: company.properties.numberofemployees || undefined,
+              country: company.properties.country || undefined
             };
+            console.log(`[HubSpot] Added company: ${company.properties.name}`);
           } catch (e) {
             // Skip if company fetch fails
+            console.log(`[HubSpot] Error fetching company ${companyId}`);
           }
         }
       }

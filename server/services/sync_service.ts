@@ -4,9 +4,10 @@
  * Orchestrates the UPSERT logic between HubSpot and Airtable.
  * Handles the business logic for creating and updating records based on webhook events.
  * 
- * Two-Part UPSERT Logic:
- * 1. Contact UPSERT: Create/update the client record in Airtable first
- * 2. Project UPSERT: Create/update the project record with a link to the client
+ * Three-Part UPSERT Logic:
+ * 1. Company UPSERT: Create/update the company record in Airtable first
+ * 2. Contact UPSERT: Create/update the client record with link to company
+ * 3. Project UPSERT: Create/update the project record with link to the client
  */
 
 import { config } from './config';
@@ -14,20 +15,28 @@ import {
   getDealWithAssociations, 
   getContactDetails,
   type DealWithAssociations,
-  type ContactDetails
+  type ContactDetails,
+  type CompanyDetails
 } from './hubspot_service';
 import { 
   findProjectByHubSpotDealId, 
   createProject, 
   updateProject,
   linkProjectToClient,
+  linkProjectToCompany,
   findClientByHubSpotContactId,
   createClient,
   updateClient,
+  findCompanyByHubSpotId,
+  createCompany,
+  updateCompany,
+  linkContactToCompany,
   type Project,
   type ProjectInput,
   type Client,
-  type ClientInput
+  type ClientInput,
+  type CompanyRecord,
+  type CompanyInput
 } from './airtable_service';
 
 /**
@@ -39,6 +48,7 @@ export interface SyncResult {
   dealId: string;
   projectId?: string;
   clientId?: string;
+  companyId?: string;
   message: string;
 }
 
@@ -50,6 +60,17 @@ export interface ContactSyncResult {
   action: 'created' | 'updated' | 'skipped' | 'error';
   contactId: string;
   clientId?: string;
+  message: string;
+}
+
+/**
+ * Result of a company sync operation
+ */
+export interface CompanySyncResult {
+  success: boolean;
+  action: 'created' | 'updated' | 'skipped' | 'error';
+  hubspotCompanyId: string;
+  airtableCompanyId?: string;
   message: string;
 }
 
@@ -197,11 +218,116 @@ function buildClientUpdates(
 }
 
 /**
+ * Syncs a HubSpot company to an Airtable company record.
+ * 
+ * @param {CompanyDetails} company - The HubSpot Company details
+ * @returns {Promise<CompanySyncResult>} The result of the company sync
+ */
+export async function syncCompanyToAirtable(
+  company: CompanyDetails
+): Promise<CompanySyncResult> {
+  try {
+    console.log(`[Sync] Starting company sync for HubSpot Company ID: ${company.id}`);
+
+    const existingCompany = await findCompanyByHubSpotId(company.id);
+
+    if (existingCompany) {
+      console.log(`[Sync] Existing company found: ${existingCompany.id}`);
+      
+      const updates = buildCompanyUpdates(company, existingCompany);
+      
+      if (Object.keys(updates).length === 0) {
+        return {
+          success: true,
+          action: 'skipped',
+          hubspotCompanyId: company.id,
+          airtableCompanyId: existingCompany.id,
+          message: 'No company fields changed'
+        };
+      }
+
+      const updatedCompany = await updateCompany(existingCompany.id, updates);
+      
+      return {
+        success: true,
+        action: 'updated',
+        hubspotCompanyId: company.id,
+        airtableCompanyId: updatedCompany.id,
+        message: `Updated company with fields: ${Object.keys(updates).join(', ')}`
+      };
+    } else {
+      const companyInput = buildCompanyFromHubSpot(company);
+      const newCompany = await createCompany(companyInput);
+
+      return {
+        success: true,
+        action: 'created',
+        hubspotCompanyId: company.id,
+        airtableCompanyId: newCompany.id,
+        message: `Created new company: ${newCompany.name}`
+      };
+    }
+  } catch (error: any) {
+    console.error(`[Sync] Error syncing company ${company.id}:`, error.message);
+    return {
+      success: false,
+      action: 'error',
+      hubspotCompanyId: company.id,
+      message: error.message
+    };
+  }
+}
+
+/**
+ * Builds a CompanyInput object from HubSpot company details.
+ */
+function buildCompanyFromHubSpot(company: CompanyDetails): CompanyInput {
+  return {
+    hubspotCompanyId: company.id,
+    name: company.name,
+    website: company.domain,
+    industry: company.industry,
+    companySize: company.numberOfEmployees,
+    country: company.country
+  };
+}
+
+/**
+ * Builds company updates by comparing HubSpot company with existing Airtable record.
+ */
+function buildCompanyUpdates(
+  company: CompanyDetails,
+  existingCompany: CompanyRecord
+): Partial<CompanyInput> {
+  const updates: Partial<CompanyInput> = {};
+  const syncableFields = config.fieldMapping.syncableCompanyFields;
+
+  if (syncableFields.includes('name') && company.name !== existingCompany.name) {
+    updates.name = company.name;
+  }
+  if (syncableFields.includes('domain') && company.domain !== existingCompany.website) {
+    updates.website = company.domain;
+  }
+  if (syncableFields.includes('industry') && company.industry !== existingCompany.industry) {
+    updates.industry = company.industry;
+  }
+  if (syncableFields.includes('numberofemployees') && company.numberOfEmployees !== existingCompany.companySize) {
+    updates.companySize = company.numberOfEmployees;
+  }
+  if (syncableFields.includes('country') && company.country !== existingCompany.country) {
+    updates.country = company.country;
+  }
+
+  return updates;
+}
+
+/**
  * Main UPSERT function for syncing HubSpot deals to Airtable projects.
  * 
- * TWO-PART LOGIC:
- * 1. CONTACT UPSERT (First): Process associated contacts, create/update in Airtable
- * 2. PROJECT UPSERT (Second): Create/update project with link to the client
+ * THREE-PART LOGIC:
+ * 1. COMPANY UPSERT (First): Process associated company, create/update in Airtable
+ * 2. CONTACT UPSERT (Second): Process associated contacts, create/update and link to company
+ * 3. PROJECT UPSERT (Third): Create/update project with link to the client
  * 
  * @param {string} hubspotDealId - The HubSpot Deal ID from the webhook
  * @param {string} propertyChanged - The property that triggered the webhook (optional)
@@ -222,6 +348,7 @@ export async function syncDealToProject(
         success: false,
         action: 'error',
         dealId: hubspotDealId,
+        companyId: undefined,
         message: `Deal ${hubspotDealId} not found in HubSpot`
       };
     }
@@ -229,7 +356,25 @@ export async function syncDealToProject(
     console.log(`[Sync] Found deal: ${deal.name} (Stage: ${deal.stageId})`);
 
     // ==========================================
-    // PART A: CONTACT UPSERT (First)
+    // PART A: COMPANY UPSERT (First)
+    // ==========================================
+    let linkedCompanyId: string | undefined;
+    
+    if (deal.company) {
+      console.log(`[Sync] Processing company: ${deal.company.name}`);
+      
+      const companyResult = await syncCompanyToAirtable(deal.company);
+      
+      if (companyResult.success && companyResult.airtableCompanyId) {
+        linkedCompanyId = companyResult.airtableCompanyId;
+        console.log(`[Sync] Company synced successfully, companyId: ${linkedCompanyId}`);
+      } else {
+        console.log(`[Sync] Company sync ${companyResult.action}: ${companyResult.message}`);
+      }
+    }
+
+    // ==========================================
+    // PART B: CONTACT UPSERT (Second - Link to Company)
     // ==========================================
     let linkedClientId: string | undefined;
     
@@ -242,13 +387,23 @@ export async function syncDealToProject(
       if (contactResult.success && contactResult.clientId) {
         linkedClientId = contactResult.clientId;
         console.log(`[Sync] Contact synced successfully, clientId: ${linkedClientId}`);
+        
+        // Link contact to company if both exist
+        if (linkedCompanyId) {
+          try {
+            await linkContactToCompany(linkedClientId, linkedCompanyId);
+            console.log(`[Sync] Linked contact ${linkedClientId} to company ${linkedCompanyId}`);
+          } catch (e: any) {
+            console.log(`[Sync] Contact-Company link may already exist or failed: ${e.message}`);
+          }
+        }
       } else {
         console.log(`[Sync] Contact sync ${contactResult.action}: ${contactResult.message}`);
       }
     }
 
     // ==========================================
-    // PART B: PROJECT UPSERT (Linked - Second)
+    // PART C: PROJECT UPSERT (Third - Link to Client)
     // ==========================================
     
     // Step 2: Check if project already exists in Airtable
@@ -265,6 +420,7 @@ export async function syncDealToProject(
           dealId: hubspotDealId,
           projectId: existingProject.id,
           clientId: linkedClientId,
+          companyId: linkedCompanyId,
           message: 'Updates disabled in config'
         };
       }
@@ -281,6 +437,15 @@ export async function syncDealToProject(
         }
       }
       
+      // Link company to project if not already linked
+      if (linkedCompanyId) {
+        try {
+          await linkProjectToCompany(existingProject.id, linkedCompanyId);
+        } catch (e) {
+          console.log(`[Sync] Company link may already exist or failed`);
+        }
+      }
+      
       if (Object.keys(updates).length === 0) {
         return {
           success: true,
@@ -288,6 +453,7 @@ export async function syncDealToProject(
           dealId: hubspotDealId,
           projectId: existingProject.id,
           clientId: linkedClientId,
+          companyId: linkedCompanyId,
           message: 'No syncable fields changed'
         };
       }
@@ -300,6 +466,7 @@ export async function syncDealToProject(
         dealId: hubspotDealId,
         projectId: updatedProject.id,
         clientId: linkedClientId,
+        companyId: linkedCompanyId,
         message: `Updated project with fields: ${Object.keys(updates).join(', ')}`
       };
 
@@ -314,12 +481,13 @@ export async function syncDealToProject(
           action: 'skipped',
           dealId: hubspotDealId,
           clientId: linkedClientId,
+          companyId: linkedCompanyId,
           message: `Deal stage '${deal.stage}' does not trigger project creation`
         };
       }
 
-      // Build project from deal data WITH client link
-      const projectInput = buildProjectFromDeal(deal, linkedClientId);
+      // Build project from deal data WITH client and company links
+      const projectInput = buildProjectFromDeal(deal, linkedClientId, linkedCompanyId);
       const newProject = await createProject(projectInput);
 
       return {
@@ -328,7 +496,8 @@ export async function syncDealToProject(
         dealId: hubspotDealId,
         projectId: newProject.id,
         clientId: linkedClientId,
-        message: `Created new project: ${newProject.name}` + (linkedClientId ? ` (linked to client ${linkedClientId})` : '')
+        companyId: linkedCompanyId,
+        message: `Created new project: ${newProject.name}` + (linkedClientId ? ` (linked to client ${linkedClientId})` : '') + (linkedCompanyId ? ` (company ${linkedCompanyId})` : '')
       };
     }
   } catch (error: any) {
@@ -337,6 +506,7 @@ export async function syncDealToProject(
       success: false,
       action: 'error',
       dealId: hubspotDealId,
+      companyId: undefined,
       message: error.message
     };
   }
@@ -348,9 +518,10 @@ export async function syncDealToProject(
  * 
  * @param {DealWithAssociations} deal - The HubSpot deal with associations
  * @param {string} clientId - Optional Airtable client ID to link
+ * @param {string} companyId - Optional Airtable company ID to link
  * @returns {ProjectInput} The project input ready for Airtable creation
  */
-function buildProjectFromDeal(deal: DealWithAssociations, clientId?: string): ProjectInput {
+function buildProjectFromDeal(deal: DealWithAssociations, clientId?: string, companyId?: string): ProjectInput {
   const stageId = deal.stageId.toLowerCase();
   const status = config.projectStatusMapping[stageId] || 'Active';
 
@@ -361,7 +532,8 @@ function buildProjectFromDeal(deal: DealWithAssociations, clientId?: string): Pr
     status: status,
     startDate: deal.closeDate ? deal.closeDate.split('T')[0] : undefined,
     description: deal.description || buildProjectDescription(deal),
-    clientId: clientId
+    clientId: clientId,
+    companyId: companyId
   };
 }
 
