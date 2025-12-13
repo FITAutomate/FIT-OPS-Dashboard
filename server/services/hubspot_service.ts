@@ -132,36 +132,50 @@ export async function getDealWithAssociations(dealId: string): Promise<DealWithA
 
     // Try to get associations using the batch read endpoint
     try {
+      console.log(`[HubSpot] Fetching contact associations for deal ${dealId}`);
       const associationsResponse = await hubspotClient.crm.associations.batchApi.read(
         'deals',
         'contacts',
         { inputs: [{ id: dealId }] }
       );
 
+      console.log(`[HubSpot] Associations response: ${JSON.stringify(associationsResponse.results)}`);
+
       if (associationsResponse.results && associationsResponse.results.length > 0) {
         const associations = associationsResponse.results[0];
         if (associations.to && associations.to.length > 0) {
+          console.log(`[HubSpot] Found ${associations.to.length} contact associations`);
           for (const assoc of associations.to.slice(0, 5)) {
             try {
+              // HubSpot SDK v10+ uses 'id' instead of 'toObjectId'
+              const contactId = (assoc as any).toObjectId || (assoc as any).id;
+              console.log(`[HubSpot] Fetching contact: ${contactId}`);
               const contact = await hubspotClient.crm.contacts.basicApi.getById(
-                assoc.toObjectId,
-                ['firstname', 'lastname', 'email']
+                contactId,
+                ['firstname', 'lastname', 'email', 'phone', 'jobtitle']
               );
               result.contacts!.push({
                 id: contact.id,
                 firstName: contact.properties.firstname || '',
                 lastName: contact.properties.lastname || '',
-                email: contact.properties.email || ''
+                email: contact.properties.email || '',
+                phone: contact.properties.phone || undefined,
+                jobTitle: contact.properties.jobtitle || undefined
               });
-            } catch (e) {
-              // Skip if contact fetch fails
+              console.log(`[HubSpot] Added contact: ${contact.properties.firstname} ${contact.properties.lastname}`);
+            } catch (e: any) {
+              const contactId = (assoc as any).toObjectId || (assoc as any).id;
+              console.log(`[HubSpot] Error fetching contact ${contactId}: ${e.message}`);
             }
           }
+        } else {
+          console.log('[HubSpot] No contacts in associations.to array');
         }
+      } else {
+        console.log('[HubSpot] No results in associations response');
       }
-    } catch (e) {
-      // Associations may not exist - continue without them
-      console.log('[HubSpot] No contact associations found or error fetching');
+    } catch (e: any) {
+      console.log(`[HubSpot] Error fetching contact associations: ${e.message}`);
     }
 
     // Try to get company associations
@@ -175,7 +189,8 @@ export async function getDealWithAssociations(dealId: string): Promise<DealWithA
       if (companyAssociationsResponse.results && companyAssociationsResponse.results.length > 0) {
         const associations = companyAssociationsResponse.results[0];
         if (associations.to && associations.to.length > 0) {
-          const companyId = associations.to[0].toObjectId;
+          // HubSpot SDK v10+ uses 'id' instead of 'toObjectId'
+          const companyId = (associations.to[0] as any).toObjectId || (associations.to[0] as any).id;
           try {
             const company = await hubspotClient.crm.companies.basicApi.getById(
               companyId,

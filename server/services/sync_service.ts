@@ -411,7 +411,11 @@ function buildProjectUpdates(
     }
   }
 
-  // Note: Budget not synced - Airtable has 'Budget Hours' which is different from deal amount
+  if (syncableFields.includes('amount')) {
+    if (deal.amount !== existingProject.budget) {
+      updates.budget = deal.amount;
+    }
+  }
 
   if (syncableFields.includes('closedate') && deal.closeDate) {
     const newStartDate = deal.closeDate.split('T')[0];
