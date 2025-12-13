@@ -185,7 +185,7 @@ export async function findProjectByHubSpotDealId(hubspotDealId: string): Promise
       budget: 0,
       status: (record.get('Status') as string) || 'Active',
       startDate: (record.get('Start Date') as string) || '',
-      description: (record.get('Notes') as string) || '',
+      description: (record.get('Description') as string) || '',
       companyId: (record.get('Company') as string[])?.join(',') || undefined
     };
   } catch (error: any) {
@@ -222,7 +222,7 @@ export async function createProject(project: ProjectInput): Promise<Project> {
       fields['Start Date'] = project.startDate;
     }
     if (project.description) {
-      fields['Notes'] = project.description;
+      fields['Description'] = project.description;
     }
     // Link to company if provided
     if (project.companyId) {
@@ -283,7 +283,7 @@ export async function updateProject(recordId: string, updates: Partial<ProjectIn
       fields['Start Date'] = updates.startDate;
     }
     if (updates.description && syncableFields.includes('description')) {
-      fields['Notes'] = updates.description;
+      fields['Description'] = updates.description;
     }
     if (updates.status) {
       fields['Status'] = updates.status;
@@ -300,7 +300,7 @@ export async function updateProject(recordId: string, updates: Partial<ProjectIn
       budget: 0,
       status: (record.get('Status') as string) || 'Active',
       startDate: (record.get('Start Date') as string) || '',
-      description: (record.get('Notes') as string) || '',
+      description: (record.get('Description') as string) || '',
       companyId: (record.get('Company') as string[])?.join(',') || undefined
     };
   } catch (error: any) {
@@ -331,7 +331,7 @@ export async function linkProjectToClient(projectId: string, clientId: string): 
       budget: 0,
       status: (record.get('Status') as string) || 'Active',
       startDate: (record.get('Start Date') as string) || '',
-      description: (record.get('Notes') as string) || '',
+      description: (record.get('Description') as string) || '',
       companyId: (record.get('Company') as string[])?.join(',') || undefined
     };
   } catch (error: any) {
@@ -497,7 +497,7 @@ export async function getAllProjects(): Promise<Project[]> {
       budget: 0,
       status: (record.get('Status') as string) || 'Active',
       startDate: (record.get('Start Date') as string) || '',
-      description: (record.get('Notes') as string) || '',
+      description: (record.get('Description') as string) || '',
       companyId: (record.get('Company') as string[])?.join(',') || undefined
     }));
   } catch (error: any) {

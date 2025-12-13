@@ -108,7 +108,7 @@ export const config = {
     dealToProject: {
       dealname: 'Project Name',
       closedate: 'Start Date',
-      description: 'Notes'
+      description: 'Description'
       // Note: 'amount' not synced - Airtable has 'Budget Hours' which is different from deal amount
     },
     /**
