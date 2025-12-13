@@ -211,10 +211,7 @@ export async function createProject(project: ProjectInput): Promise<Project> {
       'HubSpot Deal ID': project.hubspotDealId
     };
 
-    // Add optional fields if provided
-    if (project.budget !== undefined) {
-      fields['Budget'] = project.budget;
-    }
+    // Note: Budget not synced - Airtable has 'Budget Hours' which is different from deal amount
     if (project.status) {
       fields['Status'] = project.status;
     }

@@ -156,14 +156,15 @@ export const config = {
   /**
    * Project Status Mapping
    * Maps HubSpot deal stages to Airtable project statuses
+   * Valid Airtable options: Planned, In Progress, On Hold, Completed, Cancelled, Not Started, Blocked, In Review
    */
   projectStatusMapping: {
-    closedwon: 'Active',
-    contractsent: 'Pending Approval',
-    decisionmakerboughtin: 'Negotiation',
-    presentationscheduled: 'Proposal',
-    qualifiedtobuy: 'Discovery',
-    appointmentscheduled: 'New',
+    closedwon: 'In Progress',
+    contractsent: 'Planned',
+    decisionmakerboughtin: 'Planned',
+    presentationscheduled: 'Planned',
+    qualifiedtobuy: 'Not Started',
+    appointmentscheduled: 'Not Started',
     closedlost: 'Cancelled'
   } as Record<string, string>
 };
