@@ -101,7 +101,12 @@ async function seedCompanies(logs: string[]): Promise<SeedStats> {
       records.push({ id: record.id, name: company.name });
       created++;
     } catch (error: any) {
-      logs.push(`  Error creating ${company.name}: ${error.message}`);
+      const statusCode = error.statusCode || error.status || 'unknown';
+      const errorType = error.error || error.type || 'unknown';
+      logs.push(`  Error creating ${company.name}: [${statusCode}] ${error.message}`);
+      if (error.data) {
+        logs.push(`    Details: ${JSON.stringify(error.data)}`);
+      }
     }
   }
 
@@ -146,7 +151,11 @@ async function seedContacts(companyIds: CreatedRecord[], logs: string[]): Promis
       records.push({ id: record.id, name: `${contact.firstName} ${contact.lastName}` });
       created++;
     } catch (error: any) {
-      logs.push(`  Error creating ${contact.firstName} ${contact.lastName}: ${error.message}`);
+      const statusCode = error.statusCode || error.status || 'unknown';
+      logs.push(`  Error creating ${contact.firstName} ${contact.lastName}: [${statusCode}] ${error.message}`);
+      if (error.data) {
+        logs.push(`    Details: ${JSON.stringify(error.data)}`);
+      }
     }
   }
 
@@ -173,7 +182,6 @@ async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promis
       const contactId = contactIds[project.contactIndex]?.id;
       const fields: Record<string, any> = {
         'Project Name': project.name,
-        'Status': project.status,
         'Start Date': project.startDate,
         'Description': `Demo project: ${project.name}`
       };
@@ -187,7 +195,11 @@ async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promis
       logs.push(`  Created: ${project.name}`);
       created++;
     } catch (error: any) {
-      logs.push(`  Error creating ${project.name}: ${error.message}`);
+      const statusCode = error.statusCode || error.status || 'unknown';
+      logs.push(`  Error creating ${project.name}: [${statusCode}] ${error.message}`);
+      if (error.data) {
+        logs.push(`    Details: ${JSON.stringify(error.data)}`);
+      }
     }
   }
 
