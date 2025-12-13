@@ -163,6 +163,10 @@ export async function registerRoutes(
    * Security: Verifies HubSpot request signature before processing.
    */
   app.post('/api/webhooks/hubspot/deal_status', async (req: Request, res: Response) => {
+    console.log('[Webhook] *** INCOMING REQUEST ***');
+    console.log('[Webhook] Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('[Webhook] Body:', JSON.stringify(req.body, null, 2));
+    
     try {
       // Verify HubSpot signature
       if (!verifyHubSpotSignature(req)) {
@@ -170,7 +174,7 @@ export async function registerRoutes(
         return res.status(401).json({ error: 'Invalid signature' });
       }
 
-      console.log('[Webhook] Received HubSpot webhook');
+      console.log('[Webhook] Signature verified - processing webhook');
 
       // HubSpot sends an array of events
       const payloads: HubSpotWebhookPayload[] = Array.isArray(req.body) 
@@ -204,6 +208,28 @@ export async function registerRoutes(
         error: 'Webhook processing failed', 
         message: error.message 
       });
+    }
+  });
+
+  /**
+   * POST /api/webhooks/hubspot/test/:dealId
+   * 
+   * Manual test endpoint to trigger sync for a specific deal.
+   * Used for debugging - bypasses HubSpot webhook.
+   */
+  app.post('/api/webhooks/hubspot/test/:dealId', async (req: Request, res: Response) => {
+    try {
+      const { dealId } = req.params;
+      console.log(`[Test] Manual sync triggered for deal: ${dealId}`);
+      
+      const { syncDealToProject } = await import('./services/sync_service');
+      const result = await syncDealToProject(dealId);
+      
+      console.log(`[Test] Sync result:`, JSON.stringify(result, null, 2));
+      res.json(result);
+    } catch (error: any) {
+      console.error('[Test] Error:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 
