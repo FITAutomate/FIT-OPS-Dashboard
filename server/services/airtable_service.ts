@@ -182,10 +182,10 @@ export async function findProjectByHubSpotDealId(hubspotDealId: string): Promise
       id: record.id,
       name: (record.get('Project Name') as string) || '',
       hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
-      budget: parseFloat((record.get('Budget') as string) || '0'),
+      budget: 0,
       status: (record.get('Status') as string) || 'Active',
       startDate: (record.get('Start Date') as string) || '',
-      description: (record.get('Description') as string) || '',
+      description: (record.get('Notes') as string) || '',
       companyId: (record.get('Company') as string[])?.join(',') || undefined
     };
   } catch (error: any) {
@@ -222,7 +222,7 @@ export async function createProject(project: ProjectInput): Promise<Project> {
       fields['Start Date'] = project.startDate;
     }
     if (project.description) {
-      fields['Description'] = project.description;
+      fields['Notes'] = project.description;
     }
     // Link to company if provided
     if (project.companyId) {
@@ -283,7 +283,7 @@ export async function updateProject(recordId: string, updates: Partial<ProjectIn
       fields['Start Date'] = updates.startDate;
     }
     if (updates.description && syncableFields.includes('description')) {
-      fields['Description'] = updates.description;
+      fields['Notes'] = updates.description;
     }
     if (updates.status) {
       fields['Status'] = updates.status;
@@ -297,10 +297,10 @@ export async function updateProject(recordId: string, updates: Partial<ProjectIn
       id: record.id,
       name: (record.get('Project Name') as string) || '',
       hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
-      budget: parseFloat((record.get('Budget') as string) || '0'),
+      budget: 0,
       status: (record.get('Status') as string) || 'Active',
       startDate: (record.get('Start Date') as string) || '',
-      description: (record.get('Description') as string) || '',
+      description: (record.get('Notes') as string) || '',
       companyId: (record.get('Company') as string[])?.join(',') || undefined
     };
   } catch (error: any) {
@@ -328,10 +328,10 @@ export async function linkProjectToClient(projectId: string, clientId: string): 
       id: record.id,
       name: (record.get('Project Name') as string) || '',
       hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
-      budget: parseFloat((record.get('Budget') as string) || '0'),
+      budget: 0,
       status: (record.get('Status') as string) || 'Active',
       startDate: (record.get('Start Date') as string) || '',
-      description: (record.get('Description') as string) || '',
+      description: (record.get('Notes') as string) || '',
       companyId: (record.get('Company') as string[])?.join(',') || undefined
     };
   } catch (error: any) {
@@ -371,8 +371,8 @@ export async function findClientByHubSpotContactId(hubspotContactId: string): Pr
       lastName: (record.get('Last Name') as string) || '',
       email: (record.get('Email') as string) || '',
       phone: (record.get('Phone') as string) || undefined,
-      jobTitle: (record.get('Job Title') as string) || undefined,
-      companyName: (record.get('Company Name') as string) || undefined
+      jobTitle: (record.get('Role / Title') as string) || undefined,
+      companyName: undefined // Company is a linked record, not synced directly
     };
   } catch (error: any) {
     console.error(`Airtable API Error (findClientByHubSpotContactId): ${error.message}`);
@@ -401,11 +401,9 @@ export async function createClient(client: ClientInput): Promise<Client> {
       fields['Phone'] = client.phone;
     }
     if (client.jobTitle) {
-      fields['Job Title'] = client.jobTitle;
+      fields['Role / Title'] = client.jobTitle;
     }
-    if (client.companyName) {
-      fields['Company Name'] = client.companyName;
-    }
+    // Note: Company is a linked record field in Airtable, not synced directly
 
     const record = await base(config.airtable.tables.contacts).create(fields);
 
@@ -454,11 +452,9 @@ export async function updateClient(recordId: string, updates: Partial<ClientInpu
       fields['Phone'] = updates.phone;
     }
     if (updates.jobTitle && syncableFields.includes('jobtitle')) {
-      fields['Job Title'] = updates.jobTitle;
+      fields['Role / Title'] = updates.jobTitle;
     }
-    if (updates.companyName && syncableFields.includes('company')) {
-      fields['Company Name'] = updates.companyName;
-    }
+    // Note: Company is a linked record field, not synced directly
 
     const record = await base(config.airtable.tables.contacts).update(recordId, fields);
 
@@ -471,8 +467,8 @@ export async function updateClient(recordId: string, updates: Partial<ClientInpu
       lastName: (record.get('Last Name') as string) || '',
       email: (record.get('Email') as string) || '',
       phone: (record.get('Phone') as string) || undefined,
-      jobTitle: (record.get('Job Title') as string) || undefined,
-      companyName: (record.get('Company Name') as string) || undefined
+      jobTitle: (record.get('Role / Title') as string) || undefined,
+      companyName: undefined // Company is a linked record, not synced directly
     };
   } catch (error: any) {
     console.error(`Airtable API Error (updateClient): ${error.message}`);
@@ -498,10 +494,10 @@ export async function getAllProjects(): Promise<Project[]> {
       id: record.id,
       name: (record.get('Project Name') as string) || '',
       hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
-      budget: parseFloat((record.get('Budget') as string) || '0'),
+      budget: 0,
       status: (record.get('Status') as string) || 'Active',
       startDate: (record.get('Start Date') as string) || '',
-      description: (record.get('Description') as string) || '',
+      description: (record.get('Notes') as string) || '',
       companyId: (record.get('Company') as string[])?.join(',') || undefined
     }));
   } catch (error: any) {

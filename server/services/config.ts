@@ -107,9 +107,9 @@ export const config = {
      */
     dealToProject: {
       dealname: 'Project Name',
-      amount: 'Budget',
       closedate: 'Start Date',
-      description: 'Description'
+      description: 'Notes'
+      // Note: 'amount' not synced - Airtable has 'Budget Hours' which is different from deal amount
     },
     /**
      * Contact -> Client field mapping
@@ -120,8 +120,8 @@ export const config = {
       lastname: 'Last Name',
       email: 'Email',
       phone: 'Phone',
-      jobtitle: 'Job Title',
-      company: 'Company Name'
+      jobtitle: 'Role / Title'
+      // Note: 'company' is a linked record field in Airtable, not synced directly
     },
     /**
      * Fields that are "syncable" - can be updated on existing records
@@ -140,8 +140,8 @@ export const config = {
       'lastname',
       'email',
       'phone',
-      'jobtitle',
-      'company'
+      'jobtitle'
+      // Note: 'company' is a linked record, not synced directly
     ],
     /**
      * Read-only fields in Airtable (never updated by sync)
