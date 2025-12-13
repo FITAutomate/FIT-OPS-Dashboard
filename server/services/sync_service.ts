@@ -189,6 +189,9 @@ function buildClientUpdates(
   if (syncableFields.includes('jobtitle') && contact.jobTitle !== existingClient.jobTitle) {
     updates.jobTitle = contact.jobTitle;
   }
+  if (syncableFields.includes('company') && contact.companyName !== existingClient.companyName) {
+    updates.companyName = contact.companyName;
+  }
 
   return updates;
 }

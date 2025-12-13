@@ -456,6 +456,9 @@ export async function updateClient(recordId: string, updates: Partial<ClientInpu
     if (updates.jobTitle && syncableFields.includes('jobtitle')) {
       fields['Job Title'] = updates.jobTitle;
     }
+    if (updates.companyName && syncableFields.includes('company')) {
+      fields['Company Name'] = updates.companyName;
+    }
 
     const record = await base(config.airtable.tables.contacts).update(recordId, fields);
 

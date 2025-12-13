@@ -54,7 +54,7 @@ vi.mock('../server/services/config', () => ({
         jobtitle: 'Job Title'
       },
       syncableFields: ['dealname', 'amount', 'closedate', 'description'],
-      syncableContactFields: ['firstname', 'lastname', 'email', 'phone', 'jobtitle']
+      syncableContactFields: ['firstname', 'lastname', 'email', 'phone', 'jobtitle', 'company']
     },
     projectStatusMapping: {
       closedwon: 'Active',
@@ -424,6 +424,23 @@ describe('Sync Service - UPSERT Logic', () => {
       expect(result.action).toBe('updated');
       expect(mockUpdateClient).toHaveBeenCalledTimes(1);
       expect(mockCreateClient).not.toHaveBeenCalled();
+    });
+
+    it('should update client company name when it changes in HubSpot', async () => {
+      const updatedContact = { ...mockContact, companyName: 'New Corp Inc' };
+      const existingClientOldCompany = { ...mockExistingClient, companyName: 'Acme Corp' };
+      mockGetContactDetails.mockResolvedValue(updatedContact);
+      mockFindClientByHubSpotContactId.mockResolvedValue(existingClientOldCompany);
+      mockUpdateClient.mockResolvedValue({ ...existingClientOldCompany, companyName: 'New Corp Inc' });
+
+      const result = await syncContactToClient('c1');
+
+      expect(result.success).toBe(true);
+      expect(result.action).toBe('updated');
+      expect(mockUpdateClient).toHaveBeenCalledWith(
+        'recCLIENT123',
+        expect.objectContaining({ companyName: 'New Corp Inc' })
+      );
     });
   });
 

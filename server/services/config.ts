@@ -140,7 +140,8 @@ export const config = {
       'lastname',
       'email',
       'phone',
-      'jobtitle'
+      'jobtitle',
+      'company'
     ],
     /**
      * Read-only fields in Airtable (never updated by sync)
