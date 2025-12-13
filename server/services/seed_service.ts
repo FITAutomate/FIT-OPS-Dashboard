@@ -63,9 +63,17 @@ interface SeedResult {
   logs: string[];
 }
 
-async function seedCompanies(logs: string[]): Promise<CreatedRecord[]> {
+interface SeedStats {
+  records: CreatedRecord[];
+  created: number;
+  skipped: number;
+}
+
+async function seedCompanies(logs: string[]): Promise<SeedStats> {
   logs.push('Creating Companies...');
-  const createdCompanies: CreatedRecord[] = [];
+  const records: CreatedRecord[] = [];
+  let created = 0;
+  let skipped = 0;
 
   for (const company of DEMO_COMPANIES) {
     try {
@@ -75,7 +83,8 @@ async function seedCompanies(logs: string[]): Promise<CreatedRecord[]> {
 
       if (existing.length > 0) {
         logs.push(`  Skipped: "${company.name}" already exists`);
-        createdCompanies.push({ id: existing[0].id, name: company.name });
+        records.push({ id: existing[0].id, name: company.name });
+        skipped++;
         continue;
       }
 
@@ -89,18 +98,21 @@ async function seedCompanies(logs: string[]): Promise<CreatedRecord[]> {
       });
 
       logs.push(`  Created: ${company.name}`);
-      createdCompanies.push({ id: record.id, name: company.name });
+      records.push({ id: record.id, name: company.name });
+      created++;
     } catch (error: any) {
       logs.push(`  Error creating ${company.name}: ${error.message}`);
     }
   }
 
-  return createdCompanies;
+  return { records, created, skipped };
 }
 
-async function seedContacts(companyIds: CreatedRecord[], logs: string[]): Promise<CreatedRecord[]> {
+async function seedContacts(companyIds: CreatedRecord[], logs: string[]): Promise<SeedStats> {
   logs.push('Creating Contacts...');
-  const createdContacts: CreatedRecord[] = [];
+  const records: CreatedRecord[] = [];
+  let created = 0;
+  let skipped = 0;
 
   for (const contact of DEMO_CONTACTS) {
     try {
@@ -110,7 +122,8 @@ async function seedContacts(companyIds: CreatedRecord[], logs: string[]): Promis
 
       if (existing.length > 0) {
         logs.push(`  Skipped: "${contact.firstName} ${contact.lastName}" already exists`);
-        createdContacts.push({ id: existing[0].id, name: `${contact.firstName} ${contact.lastName}` });
+        records.push({ id: existing[0].id, name: `${contact.firstName} ${contact.lastName}` });
+        skipped++;
         continue;
       }
 
@@ -130,13 +143,14 @@ async function seedContacts(companyIds: CreatedRecord[], logs: string[]): Promis
       const record = await base('Contacts').create(fields);
 
       logs.push(`  Created: ${contact.firstName} ${contact.lastName}`);
-      createdContacts.push({ id: record.id, name: `${contact.firstName} ${contact.lastName}` });
+      records.push({ id: record.id, name: `${contact.firstName} ${contact.lastName}` });
+      created++;
     } catch (error: any) {
       logs.push(`  Error creating ${contact.firstName} ${contact.lastName}: ${error.message}`);
     }
   }
 
-  return createdContacts;
+  return { records, created, skipped };
 }
 
 async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promise<{ created: number; skipped: number }> {
@@ -183,21 +197,15 @@ async function seedProjects(contactIds: CreatedRecord[], logs: string[]): Promis
 export async function seedDemoData(): Promise<SeedResult> {
   const logs: string[] = ['Starting Airtable Demo Data Seeding...'];
 
-  const companies = await seedCompanies(logs);
-  const companiesCreated = logs.filter(l => l.includes('Created:') && logs.indexOf(l) < logs.findIndex(x => x === 'Creating Contacts...')).length;
-  const companiesSkipped = companies.length - companiesCreated;
-
-  const contacts = await seedContacts(companies, logs);
-  const contactsCreated = logs.filter(l => l.includes('Created:') && logs.indexOf(l) > logs.findIndex(x => x === 'Creating Contacts...') && logs.indexOf(l) < logs.findIndex(x => x === 'Creating Projects...')).length;
-  const contactsSkipped = contacts.length - contactsCreated;
-
-  const projectStats = await seedProjects(contacts, logs);
+  const companyStats = await seedCompanies(logs);
+  const contactStats = await seedContacts(companyStats.records, logs);
+  const projectStats = await seedProjects(contactStats.records, logs);
 
   logs.push('Seeding complete!');
 
   return {
-    companies: { created: companiesCreated, skipped: companiesSkipped },
-    contacts: { created: contactsCreated, skipped: contactsSkipped },
+    companies: { created: companyStats.created, skipped: companyStats.skipped },
+    contacts: { created: contactStats.created, skipped: contactStats.skipped },
     projects: projectStats,
     logs
   };
