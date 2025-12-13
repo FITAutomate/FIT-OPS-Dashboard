@@ -1,0 +1,3129 @@
+Role: You are a Senior CRM Architect and Full-Stack Engineer. Your primary directive is to build the most modular, maintainable, and visually branded application possible.
+Goal: Create the initial version of the "FIT CRM" web application. Focus on establishing the architecture, the UI, and the separated API service layer.
+Tech Stack & Architecture:
+•	Frontend: React (Vite) + Tailwind CSS (Strict adherence to the FIT Design System).
+•	Backend: Python (Flask/Gunicorn) for the API layer.
+•	Modularity: All external API logic must be entirely contained within dedicated Service files. The core application logic must only call high-level functions from these services (e.g., hubspot_service.get_all_deals()).
+🔒 Secrets & Configuration:
+1.	Environment Variables: Reference all sensitive keys and dynamic IDs (Base IDs, Pipeline IDs, Tokens) from environment variables (Replit Secrets).
+2.	Central Configuration: Create a dedicated config.py file to define:
+o	All Airtable table names.
+o	All HubSpot pipeline stages.
+o	A clear FIELD_MAPPING dictionary for synchronizing data between the two platforms.
+🎨 FIT Design System (Strict Implementation Required):
+•	Color Palette:
+o	fit-blue: #007CE8 (Primary)
+o	fit-green: #1CD000 (Accent, Success)
+o	fit-dark: #00006C (Sidebar Background)
+o	fit-light: #DBE2E3 (Card Background)
+•	Typography: Headings: Montserrat | Body: Open Sans (Import Google Fonts).
+•	Layout: Fixed Dark Gradient sidebar, White main content area. Rounded buttons (pill shape, gradient fill).
+•	Logo: Create an /assets folder with a logo.png placeholder and place it at the top of the sidebar.
+•	You can use https://forwarditthinking.com for reference.
+⚙️ Core Service Requirements (The Modular Foundation):
+1.	Airtable Service: Create airtable_service.py. It should contain functions for getting and updating records from the tables defined in the schema below.
+2.	HubSpot Service: Create hubspot_service.py. It should contain functions for getting and updating Deals and their properties.
+3.	Outlook 365 Service (Placeholder): Create outlook_service.py. Do NOT implement the full OAuth flow. Instead, implement placeholder functions like outlook_service.get_calendar_events() and outlook_service.create_event(). The function bodies should simply return mock data and contain comments detailing the required Microsoft Graph API endpoints, scopes, and the authentication difficulty (multi-step OAuth 2.0). This separates the code and signals a future feature.
+✨ Frontend Components & Dashboard:
+•	Create the main layout (Sidebar, Topbar).
+•	Build the Dashboard page using mock data returned from the service files (until we connect the APIs).
+•	The Dashboard must feature an "Upcoming Events" widget powered by the mock data from outlook_service.py.
+Data Context (Use for Mocking in Phase 1):
+•	Airtable Schema: [{
+•	  "Companies": [
+•	    {
+•	      "name": "Company Name",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Website",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Industry",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Company Size",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Country / Region",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Status",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selPuRM6VuTBqXGmF",
+•	            "name": "Prospect",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selIr7eBcNBBtpU4p",
+•	            "name": "Active Client",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "seld2SdIFaJBxJToM",
+•	            "name": "Past Client",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selOlJJkX3ARzhYhr",
+•	            "name": "Partner",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selHrORmkBO5Sl9AT",
+•	            "name": "Internal",
+•	            "color": "yellowLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Notes",
+•	      "type": "multilineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Logo",
+•	      "type": "multipleAttachments",
+•	      "options": {
+•	        "isReversed": true
+•	      }
+•	    },
+•	    {
+•	      "name": "Contacts",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldZd7GVuSBVcowXb"
+•	      }
+•	    },
+•	    {
+•	      "name": "Deals / Engagements",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblWh3qaT0hQ15KHs",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fld4UcdbDqMuKAR6C"
+•	      }
+•	    },
+•	    {
+•	      "name": "Projects",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblW3uDjnwNXKIWiR",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldbjz3Fkl24qsysf"
+•	      }
+•	    },
+•	    {
+•	      "name": "Meetings / Discovery Calls",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tbluaHyU67BEnbYjM",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldFM209FiOVYeOZu"
+•	      }
+•	    },
+•	    {
+•	      "name": "# Contacts",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fld3N9Iuoq7Gj8hmz"
+•	      }
+•	    },
+•	    {
+•	      "name": "# Deals / Engagements",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fld1HgK4zpz1QZ3rg"
+•	      }
+•	    },
+•	    {
+•	      "name": "# Projects",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldXeiCOYDPDB992J"
+•	      }
+•	    },
+•	    {
+•	      "name": "# Meetings",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldZU2spMaj4fxyVl"
+•	      }
+•	    },
+•	    {
+•	      "name": "Total Expected Deal Value",
+•	      "type": "rollup",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fld1HgK4zpz1QZ3rg",
+•	        "fieldIdInLinkedTable": "fldK38vQ2BX9i6Eqt",
+•	        "referencedFieldIds": [],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Total Won Deal Value",
+•	      "type": "rollup",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fld1HgK4zpz1QZ3rg",
+•	        "fieldIdInLinkedTable": "fldK38vQ2BX9i6Eqt",
+•	        "referencedFieldIds": [],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Active Projects",
+•	      "type": "rollup",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldXeiCOYDPDB992J",
+•	        "fieldIdInLinkedTable": "fldjDOgllliBC3bpG",
+•	        "referencedFieldIds": [],
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Last Meeting Date",
+•	      "type": "rollup",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldZU2spMaj4fxyVl",
+•	        "fieldIdInLinkedTable": "fldpgUIGaCVs79Dvl",
+•	        "referencedFieldIds": [],
+•	        "result": {
+•	          "type": "date",
+•	          "options": {
+•	            "dateFormat": {
+•	              "name": "us",
+•	              "format": "M/D/YYYY"
+•	            }
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Company Summary (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldDRM2EhSqJz4lnh",
+•	          "fldPIOehvkqaIjnCx",
+•	          "fldo2JvgE7UzSTIrP",
+•	          "fldQsOgbjkA4s6XZ2",
+•	          "fld6uno25PleOXsgk",
+•	          "fldJBfdIICNHVTSEk"
+•	        ],
+•	        "prompt": [
+•	          "You are a professional business analyst specializing in concise company summaries for CRM and project management systems. Write in a clear, neutral, and informative tone suitable for internal business records.\n\nTask description:\nReview all available information to create a brief but comprehensive summary of the company. Include the company profile (industry, size, and region), current status, and any key activities, highlights, or context from notes. Focus on what would be most relevant for team members needing a quick understanding of the company.\n\nOutput format:\nA single paragraph summary in plain text, without headings, bullet points, or extra formatting. Do not include any additional commentary or explanation. If there is not enough information to generate a summary, output \"No sufficient company information available.\"\nExample: \"Acme Corp is a mid-sized technology company based in Germany, currently an active client. They operate in the software industry and recent notes indicate ongoing collaboration on process automation initiatives.\"\n\nContext and Data:\nCompany Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldDRM2EhSqJz4lnh"
+•	            }
+•	          },
+•	          "\nIndustry: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldPIOehvkqaIjnCx"
+•	            }
+•	          },
+•	          "\nCompany Size: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldo2JvgE7UzSTIrP"
+•	            }
+•	          },
+•	          "\nCountry / Region: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldQsOgbjkA4s6XZ2"
+•	            }
+•	          },
+•	          "\nStatus: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld6uno25PleOXsgk"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldJBfdIICNHVTSEk"
+•	            }
+•	          },
+•	          "\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Company Research (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldDRM2EhSqJz4lnh",
+•	          "fldyC4NTRUHpxSoU8"
+•	        ],
+•	        "prompt": [
+•	          "You are an expert business researcher tasked with enriching CRM company profiles for an AI automation consulting firm. Write in a professional, objective tone, focusing on factual and up-to-date information.\n\nTask description:\nSearch the internet for the latest available information about the company. Gather a brief business description, summarize any recent news or notable developments, and list key executive contacts if publicly available. Prioritize official company sources and reputable business news outlets. Do not speculate or include unverified information.\n\nOutput format:\nA concise summary in plain text, organized in three sections: 1) Business Description, 2) Recent News (with dates if possible), and 3) Key Contacts (names and titles only). Separate sections with a blank line. Do not include links, headings, or extra commentary. If no information is found, output \"No additional company information found online.\"\nExample:\nBusiness Description: Acme Corp is a global provider of workflow automation solutions headquartered in Berlin.\n\nRecent News: May 2024 - Acme Corp announced a strategic partnership with XYZ Ltd to expand AI-driven services.\n\nKey Contacts: Jane Smith, CEO; John Doe, CTO\n\nContext and Data:\nCompany Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldDRM2EhSqJz4lnh"
+•	            }
+•	          },
+•	          "\nWebsite: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldyC4NTRUHpxSoU8"
+•	            }
+•	          },
+•	          "\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Company SWOT (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldDRM2EhSqJz4lnh",
+•	          "fldPIOehvkqaIjnCx",
+•	          "fldo2JvgE7UzSTIrP",
+•	          "fldQsOgbjkA4s6XZ2",
+•	          "fld6uno25PleOXsgk",
+•	          "fldJBfdIICNHVTSEk"
+•	        ],
+•	        "prompt": [
+•	          "You are a business analyst specializing in strategic company assessments. Use professional and objective language to evaluate organizations using the SWOT (Strengths, Weaknesses, Opportunities, Threats) framework.\n\nTask description:\nCarefully review all relevant information provided and thoroughly analyze the company’s profile to identify its key strengths, weaknesses, opportunities, and threats. Base your evaluation only on the available data, using reasonable business judgment to infer information when appropriate. If there is insufficient information in any area, clearly indicate that and only include what can be reasonably concluded from the context.\n\nOutput format:\nPresent your output in four concise bullet-point lists, one each for Strengths, Weaknesses, Opportunities, and Threats. Each section should have 2–4 points and be clearly labeled (e.g., \"Strengths:\", \"Weaknesses:\"). Do not add an introduction, conclusion, or any unnecessary text. If there is insufficient information for a section, write \"Insufficient information.\" Example:\nStrengths:\n- Strong brand recognition\n- Diverse client base\n\nWeaknesses:\n- Insufficient information.\n\nOpportunities:\n- Expansion into new markets\n- Growing demand in sector\n\nThreats:\n- Increased competition\n- Regulatory uncertainty\n\nOutput only the four labeled lists. Do not include any extra commentary or headings beyond the four lists. If you cannot assess any element, write \"Insufficient information.\" Output must be in plain text and formatted as described.\n\nContext and Data:\nCompany Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldDRM2EhSqJz4lnh"
+•	            }
+•	          },
+•	          "\nIndustry: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldPIOehvkqaIjnCx"
+•	            }
+•	          },
+•	          "\nCompany Size: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldo2JvgE7UzSTIrP"
+•	            }
+•	          },
+•	          "\nCountry / Region: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldQsOgbjkA4s6XZ2"
+•	            }
+•	          },
+•	          "\nStatus: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld6uno25PleOXsgk"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldJBfdIICNHVTSEk"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Company Market Trends (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldDRM2EhSqJz4lnh",
+•	          "fldPIOehvkqaIjnCx",
+•	          "fldyC4NTRUHpxSoU8"
+•	        ],
+•	        "prompt": [
+•	          "You are a business research analyst with expertise in market trends and industry research. Your tone should be professional and concise, focusing on clear, insight-driven analysis.\n\nTask description:\nSearch the internet for current market trends and shifts directly related to the company’s industry and operating context. Use the company website and industry information to ensure relevance. Summarize the 3–5 most significant recent trends, using up-to-date and reputable sources. Your findings should be tailored to the specific company context and industry.\n\nOutput format:\nList 3–5 key market trends as concise bullet points. Start the output directly with the list; do not include an introduction, summary sentence, conclusion, links, or explanations. Bullet points should be specific and relevant to the company's sector. If you cannot find sufficient information, output: \"Insufficient information.\"\nExample:\n- Rise in digital transformation investments\n- Increased focus on sustainability practices\n- Growing adoption of automation technologies\n(Real outputs should be sector- and company-specific.)\n\nOutput only the bullet points as described, in plain text with one trend per line.\n\nContext and Data:\nCompany Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldDRM2EhSqJz4lnh"
+•	            }
+•	          },
+•	          "\nIndustry: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldPIOehvkqaIjnCx"
+•	            }
+•	          },
+•	          "\nWebsite: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldyC4NTRUHpxSoU8"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Company Competitive Landscape (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldDRM2EhSqJz4lnh",
+•	          "fldPIOehvkqaIjnCx"
+•	        ],
+•	        "prompt": [
+•	          "You are a competitive intelligence analyst, skilled at researching and summarizing competitor landscapes for businesses. Maintain a professional, analytical, and objective tone in your findings.\n\nTask description:\nSearch the internet for the main competitors relevant to the referenced company, using the company’s name and industry. Identify the top 3–5 competitors and provide a brief summary of each, focusing on their positioning, strengths, or market share relative to the company. Ensure information is current and based on reputable business sources.\n\nOutput format:\nList 3–5 direct competitors, each followed by a short sentence summarizing their market positioning or relevance. Start each competitor on a new line, and format as: [Competitor Name]: [Brief summary]. Do not include any introductions, explanations, links, or extra text. If there is insufficient information to identify competitors, output: \"Insufficient information.\"\nExample:\nTechCorp: Leading provider of software solutions for SMBs.\nInnovaSystems: Strong presence in enterprise IT consulting.\nDataMax: Fast-growing challenger with a cloud service focus.\n(Real outputs should name actual companies relevant to the industry and firm.)\n\nOnly include competitor names and summaries, formatted as described. Do not add any extra commentary in the output.\n\nContext and Data:\nCompany Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldDRM2EhSqJz4lnh"
+•	            }
+•	          },
+•	          "\nIndustry: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldPIOehvkqaIjnCx"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Automation & Content Ideas",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblGijo6W5FX42cr7",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fld52s1pgDxcHtuoI"
+•	      }
+•	    }
+•	  ],
+•	  "Contacts": [
+•	    {
+•	      "name": "Full Name",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "{fld6ySdFtm3os5kiZ} & \" \" & {fldyeGV8NOt2KHesb}",
+•	        "referencedFieldIds": [
+•	          "fld6ySdFtm3os5kiZ",
+•	          "fldyeGV8NOt2KHesb"
+•	        ],
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "First Name",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Last Name",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Email",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Phone",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Role / Title",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Contact Type",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selKLTFcL9KqeKMRZ",
+•	            "name": "Prospect",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selfXPD0aeQsQCAz2",
+•	            "name": "Client",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "seluyn24w8nXTqT6o",
+•	            "name": "Partner",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selqZa3VOq5QZuEVd",
+•	            "name": "Vendor",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selt9gsU8FNYDPHjd",
+•	            "name": "Internal",
+•	            "color": "tealDark1"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Company",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblDVrIb8eKZIwRK0",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fld3N9Iuoq7Gj8hmz"
+•	      }
+•	    },
+•	    {
+•	      "name": "Lead Source",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "sellnF2R8ByOiFrGa",
+•	            "name": "Website form",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selEQJUOqYJW6yrl8",
+•	            "name": "Referral",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selI2fFNK540UGp36",
+•	            "name": "LinkedIn",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selj2KS12KOeLfrre",
+•	            "name": "Newsletter",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "sel25Z1rzIo5XgjOv",
+•	            "name": "Other",
+•	            "color": "yellowLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Notes",
+•	      "type": "multilineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "# Deals Involved",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldoEe44CqJCVZGiw"
+•	      }
+•	    },
+•	    {
+•	      "name": "Deals",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblWh3qaT0hQ15KHs",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldAVk0F0tKXRK73V"
+•	      }
+•	    },
+•	    {
+•	      "name": "# Projects Involved",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldfGsNgrd3VEntQ8"
+•	      }
+•	    },
+•	    {
+•	      "name": "Projects",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblW3uDjnwNXKIWiR",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldtxEQZHI6vUFsNr"
+•	      }
+•	    },
+•	    {
+•	      "name": "# Meetings Attended",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldJVp4hdIzTF9MEJ"
+•	      }
+•	    },
+•	    {
+•	      "name": "Meetings",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tbluaHyU67BEnbYjM",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldpXB8nquDrr94Iq"
+•	      }
+•	    },
+•	    {
+•	      "name": "Last Meeting Date",
+•	      "type": "rollup",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldJVp4hdIzTF9MEJ",
+•	        "fieldIdInLinkedTable": "fldpgUIGaCVs79Dvl",
+•	        "referencedFieldIds": [],
+•	        "result": {
+•	          "type": "date",
+•	          "options": {
+•	            "dateFormat": {
+•	              "name": "us",
+•	              "format": "M/D/YYYY"
+•	            }
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Last Deal Stage",
+•	      "type": "rollup",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldoEe44CqJCVZGiw",
+•	        "fieldIdInLinkedTable": "fldSwFK8bj2q4ba54",
+•	        "referencedFieldIds": [],
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Contact Summary (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldj37RBOCMACZVPs",
+•	          "fldAhyOx4orE4VMR7",
+•	          "fldZd7GVuSBVcowXb",
+•	          "fld3IHjCXFGR9q5En",
+•	          "fldFeqzTyP3rrwyUb",
+•	          "fldf8fMnxnTV61sol",
+•	          "fldLpfqmwettRtxC0",
+•	          "fldr5EL5ovNoOp3nj",
+•	          "fld87p1TeQLxLDyo0",
+•	          "fldCnrTjQCTAQO0aS"
+•	        ],
+•	        "prompt": [
+•	          "You are a professional CRM assistant for an AI automation consulting firm, skilled at synthesizing contact data into concise relationship summaries. Use a professional, informative tone appropriate for internal business records.\n\nTask description:\nReview the provided contact details, company association, deal and project involvement, meeting history, and notes. Summarize the contact's role, relationship type, and engagement with the company, including the name of their company, the most recent deal stage(s), and the date of the last meeting. Highlight key points of recent activity and any important context from notes. Focus on relevance to ongoing or potential business.\n\nOutput format:\nOutput a single paragraph summary in plain text. Do not include headings, bullet points, or any extraneous text. If there is insufficient information to generate a summary, output \"Insufficient data to summarize this contact.\" Example: \"Jane Doe (CTO at Acme Corp, Client) is actively engaged with FIT Automate, recently involved in 2 deals (latest stage: Proposal Sent) and 1 project. Last met on 2024-03-15. Notes: Interested in expanding automation scope.\"\nDo not include any additional commentary or formatting.\n\nContext and Data:\nFull Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldj37RBOCMACZVPs"
+•	            }
+•	          },
+•	          "\nRole / Title: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldAhyOx4orE4VMR7"
+•	            }
+•	          },
+•	          "\nCompany: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldZd7GVuSBVcowXb"
+•	            }
+•	          },
+•	          "\nContact Type: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld3IHjCXFGR9q5En"
+•	            }
+•	          },
+•	          "\n# Deals Involved: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldFeqzTyP3rrwyUb"
+•	            }
+•	          },
+•	          "\n# Projects Involved: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldf8fMnxnTV61sol"
+•	            }
+•	          },
+•	          "\n# Meetings Attended: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldLpfqmwettRtxC0"
+•	            }
+•	          },
+•	          "\nLast Meeting Date: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldr5EL5ovNoOp3nj"
+•	            }
+•	          },
+•	          "\nLast Deal Stage: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld87p1TeQLxLDyo0"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldCnrTjQCTAQO0aS"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Contact Intent & Opportunity (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldj37RBOCMACZVPs",
+•	          "fldAhyOx4orE4VMR7",
+•	          "fldZd7GVuSBVcowXb",
+•	          "fld3IHjCXFGR9q5En",
+•	          "fldc16zodFrs27DRc",
+•	          "fldFeqzTyP3rrwyUb",
+•	          "fldf8fMnxnTV61sol",
+•	          "fldLpfqmwettRtxC0",
+•	          "fldr5EL5ovNoOp3nj",
+•	          "fld87p1TeQLxLDyo0",
+•	          "fldCnrTjQCTAQO0aS"
+•	        ],
+•	        "prompt": [
+•	          "You are an expert CRM analyst for an AI automation consulting company, skilled at interpreting contact data to assess business intent and recommend next steps. Maintain a professional, actionable tone.\n\nTask description:\nAnalyze the contact's details, company, engagement history, lead source, and notes to infer their likely intent (e.g., exploring services, ready to buy, partnership interest, etc.). Based on this analysis, suggest the best next step for FIT Automate to take to advance the relationship or opportunity. Consider the contact's role, relationship type, deal/project involvement, and recent activity in your reasoning.\n\nOutput format:\nOutput two sentences in plain text: the first sentence should state the contact's likely intent, and the second should recommend a clear, specific next step. Do not include headings, bullet points, or any extraneous text. If there is not enough information, output \"Insufficient data to assess intent or recommend next step.\" Example: \"The contact is evaluating automation solutions and is interested in a pilot project. Next step: Schedule a follow-up meeting to discuss project scope and requirements.\"\nDo not include any additional commentary or formatting.\n\nContext and Data:\nFull Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldj37RBOCMACZVPs"
+•	            }
+•	          },
+•	          "\nRole / Title: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldAhyOx4orE4VMR7"
+•	            }
+•	          },
+•	          "\nCompany: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldZd7GVuSBVcowXb"
+•	            }
+•	          },
+•	          "\nContact Type: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld3IHjCXFGR9q5En"
+•	            }
+•	          },
+•	          "\nLead Source: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldc16zodFrs27DRc"
+•	            }
+•	          },
+•	          "\n# Deals Involved: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldFeqzTyP3rrwyUb"
+•	            }
+•	          },
+•	          "\n# Projects Involved: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldf8fMnxnTV61sol"
+•	            }
+•	          },
+•	          "\n# Meetings Attended: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldLpfqmwettRtxC0"
+•	            }
+•	          },
+•	          "\nLast Meeting Date: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldr5EL5ovNoOp3nj"
+•	            }
+•	          },
+•	          "\nLast Deal Stage: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld87p1TeQLxLDyo0"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldCnrTjQCTAQO0aS"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Tasks",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblsqV5rL4AXKcyNr",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldbFxXLaHDq7lL53"
+•	      }
+•	    },
+•	    {
+•	      "name": "Contact Status",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selrK6WbhnSp8rweA",
+•	            "name": "Active",
+•	            "color": "greenLight1"
+•	          },
+•	          {
+•	            "id": "selCI23SBeMqYS9lm",
+•	            "name": "Inactive",
+•	            "color": "grayLight1"
+•	          },
+•	          {
+•	            "id": "selacORRpfaBrU7qg",
+•	            "name": "Client Primary",
+•	            "color": "tealBright"
+•	          },
+•	          {
+•	            "id": "selcxk5sCBvYc0kms",
+•	            "name": "Client Technical",
+•	            "color": "redBright"
+•	          },
+•	          {
+•	            "id": "selOjn0KX6JNVnEgM",
+•	            "name": "Partner",
+•	            "color": "cyanLight1"
+•	          },
+•	          {
+•	            "id": "selRQRfu4RDhrorgv",
+•	            "name": "Billing Contact",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selWn6pG8LJsesNfm",
+•	            "name": "Former Contact",
+•	            "color": "grayBright"
+•	          },
+•	          {
+•	            "id": "sel4d7P09z4nIbVeu",
+•	            "name": "Lead",
+•	            "color": "greenBright"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Automation & Content Ideas",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblGijo6W5FX42cr7",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldvzC19xnkdWgi24"
+•	      }
+•	    },
+•	    {
+•	      "name": "Role Type",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selfZ4mYxGfQweBZa",
+•	            "name": "Decision Maker",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "seljbrsWjMWAJvri9",
+•	            "name": "Champion",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selywBAO0apdAb846",
+•	            "name": "End User",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selq1kbrZ5flULyBK",
+•	            "name": "Technical Stakeholder",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selz180Sb9opXAUYY",
+•	            "name": "Billing Administrator",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "selhjo05Idf2svgtX",
+•	            "name": "Executive Sponsor",
+•	            "color": "orangeLight2"
+•	          },
+•	          {
+•	            "id": "selNL1uM760KaRFsd",
+•	            "name": "Staff",
+•	            "color": "blueDark1"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Projects 2",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblW3uDjnwNXKIWiR",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldeM5qGTLFWDgMz7"
+•	      }
+•	    },
+•	    {
+•	      "name": "Tasks 2",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblsqV5rL4AXKcyNr",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldUzC0RAjKW7PpSc"
+•	      }
+•	    },
+•	    {
+•	      "name": "Tasks copy",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblOdLgNIjEpMpwFA",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldgmsbdxyOo92nKl"
+•	      }
+•	    },
+•	    {
+•	      "name": "Tasks copy",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblOdLgNIjEpMpwFA",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldxsn877WHS9yJXc"
+•	      }
+•	    }
+•	  ],
+•	  "Deals": [
+•	    {
+•	      "name": "Deal Name",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Company",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblDVrIb8eKZIwRK0",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fld1HgK4zpz1QZ3rg"
+•	      }
+•	    },
+•	    {
+•	      "name": "Primary Contact",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldoEe44CqJCVZGiw"
+•	      }
+•	    },
+•	    {
+•	      "name": "Service Type",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selaBR5TLZDcy4meY",
+•	            "name": "Automation Audit",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "sel5RuX2CReyKjXwO",
+•	            "name": "Smart Automations",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selqOsoZr5sZHTcJh",
+•	            "name": "Consulting",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selHTBfGtGJzcMbau",
+•	            "name": "Retainer",
+•	            "color": "greenLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Stage",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selqdKqS83GHF98ix",
+•	            "name": "Idea",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selU08RIN2ToyIguc",
+•	            "name": "Qualified",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selbenelNRICOIZTH",
+•	            "name": "Proposal Sent",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "sel1ufwsG0zYPM1I2",
+•	            "name": "Negotiation",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selZPbxT93e91uNKQ",
+•	            "name": "Won",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "selepnXSwnWD470ov",
+•	            "name": "Lost",
+•	            "color": "orangeLight2"
+•	          },
+•	          {
+•	            "id": "selw2PaEHarUHW77Z",
+•	            "name": "On Hold",
+•	            "color": "redLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Expected Value",
+•	      "type": "currency",
+•	      "options": {
+•	        "precision": 2,
+•	        "symbol": "$"
+•	      }
+•	    },
+•	    {
+•	      "name": "Probability %",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Open Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Target Close Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Actual Close Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Next Step",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Notes",
+•	      "type": "multilineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Weighted Value",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "{fldK38vQ2BX9i6Eqt} * ({fldKLmNBdnZqGnKyq} / 100)",
+•	        "referencedFieldIds": [
+•	          "fldK38vQ2BX9i6Eqt",
+•	          "fldKLmNBdnZqGnKyq"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Days Open",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "IF({fldI53TZZ20tBTtlq},\n  DATETIME_DIFF({fldI53TZZ20tBTtlq}, {fldZKLZRF9wKcT688}, 'days'),\n  DATETIME_DIFF(TODAY(), {fldZKLZRF9wKcT688}, 'days')\n)",
+•	        "referencedFieldIds": [
+•	          "fldI53TZZ20tBTtlq",
+•	          "fldZKLZRF9wKcT688"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Company Industry",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fld4UcdbDqMuKAR6C",
+•	        "fieldIdInLinkedTable": "fldPIOehvkqaIjnCx",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Company Status",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fld4UcdbDqMuKAR6C",
+•	        "fieldIdInLinkedTable": "fld6uno25PleOXsgk",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Project Count",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldeZAltZwwfQngHA"
+•	      }
+•	    },
+•	    {
+•	      "name": "Projects",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblW3uDjnwNXKIWiR",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldjeP8cWF6Pz6DJh"
+•	      }
+•	    },
+•	    {
+•	      "name": "Meeting Count",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldIBpPhfh7yAx3Bt"
+•	      }
+•	    },
+•	    {
+•	      "name": "Meetings",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tbluaHyU67BEnbYjM",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fld3IzhD0PvYQ0A7M"
+•	      }
+•	    },
+•	    {
+•	      "name": "Deal Summary (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldxOU1sA7cvGqxUh",
+•	          "fld4UcdbDqMuKAR6C",
+•	          "fldXcyPC3SiTuoSdS",
+•	          "fldSwFK8bj2q4ba54",
+•	          "fldK38vQ2BX9i6Eqt",
+•	          "fldKLmNBdnZqGnKyq",
+•	          "fldbUrJirB0nkPb6U",
+•	          "fldcZraX5AgPZyhuU"
+•	        ],
+•	        "prompt": [
+•	          "You are a professional CRM assistant for an AI automation consulting company, tasked with providing concise overviews of sales deals for busy founders and team members. Your expertise is in summarizing deal information to highlight the most important details, values, and actionable next steps in a clear and professional tone.\n\nTask description:\nCarefully review the provided deal details, including the deal name, company, service type, stage, expected value, probability percentage, next step, and notes. Synthesize this information into a brief summary that gives a clear snapshot of the deal's status, its potential value, and what needs to happen next. Focus on clarity and relevance for quick decision-making.\n\nOutput format:\nWrite a 2-4 sentence summary in plain text, without headings, bullet points, or extra formatting. Clearly mention the deal name, company, service type, current stage, expected value (as a currency, e.g. $10,000), probability percentage, and next step. If notes are present, briefly mention any key context or risks. Do not include any additional commentary or explanation. If any critical information is missing, output \"Insufficient data to summarize this deal.\"\nExample: \"Deal 'Automation Upgrade' with Acme Corp is at the Proposal Sent stage for a Smart Automations service, valued at $15,000 with a 60% probability. Next step: Schedule technical scoping call. Notes: Awaiting feedback on pricing.\"\n\nContext and Data:\nDeal Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldxOU1sA7cvGqxUh"
+•	            }
+•	          },
+•	          "\nCompany: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld4UcdbDqMuKAR6C"
+•	            }
+•	          },
+•	          "\nService Type: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldXcyPC3SiTuoSdS"
+•	            }
+•	          },
+•	          "\nStage: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldSwFK8bj2q4ba54"
+•	            }
+•	          },
+•	          "\nExpected Value: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldK38vQ2BX9i6Eqt"
+•	            }
+•	          },
+•	          "\nProbability Percentage: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldKLmNBdnZqGnKyq"
+•	            }
+•	          },
+•	          "\nNext Step: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldbUrJirB0nkPb6U"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldcZraX5AgPZyhuU"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Deal Health (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldSwFK8bj2q4ba54",
+•	          "fldKLmNBdnZqGnKyq",
+•	          "fldLb7iHDVkevYNhY",
+•	          "fldbUrJirB0nkPb6U",
+•	          "fldcZraX5AgPZyhuU"
+•	        ],
+•	        "prompt": [
+•	          "You are a sales operations analyst for an AI automation consulting firm, responsible for quickly assessing the health of sales deals to support founders and sales teams. Use your expertise in pipeline management to evaluate deal momentum and risk, and communicate findings in a concise, professional manner.\n\nTask description:\nAnalyze the provided deal information, considering the current stage, probability percentage, days open, next step, and notes. Based on these factors, determine whether the deal is strong, at risk, stalled, or high potential. Justify your assessment with 1-2 sentences of reasoning, referencing relevant data points such as stage progression, time in pipeline, clarity of next steps, and any risks or concerns noted. Be objective and actionable.\n\nOutput format:\nOutput a short status (\"Strong\", \"At Risk\", \"Stalled\", or \"High Potential\") followed by a colon and a brief justification in plain text. Do not use headings, bullet points, or extra formatting. Do not include any additional commentary. If insufficient information is available to make an assessment, output \"Insufficient data to assess deal health.\"\nExample: \"At Risk: Deal has been in Negotiation for 45 days with no clear next step and low probability.\"\n\nContext and Data:\nStage: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldSwFK8bj2q4ba54"
+•	            }
+•	          },
+•	          "\nProbability Percentage: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldKLmNBdnZqGnKyq"
+•	            }
+•	          },
+•	          "\nDays Open: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldLb7iHDVkevYNhY"
+•	            }
+•	          },
+•	          "\nNext Step: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldbUrJirB0nkPb6U"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldcZraX5AgPZyhuU"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Automation & Content Ideas",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblGijo6W5FX42cr7",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldcvsaSw36eeHTQf"
+•	      }
+•	    },
+•	    {
+•	      "name": "Automation & Content Ideas 2",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblGijo6W5FX42cr7",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldNaRzxJ2136IwcJ"
+•	      }
+•	    }
+•	  ],
+•	  "Projects": [
+•	    {
+•	      "name": "Project Name",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Related Deal / Engagement",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblWh3qaT0hQ15KHs",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldeZAltZwwfQngHA"
+•	      }
+•	    },
+•	    {
+•	      "name": "Company",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblDVrIb8eKZIwRK0",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldXeiCOYDPDB992J"
+•	      }
+•	    },
+•	    {
+•	      "name": "Project Type",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "sel0qX1aBA61SX85a",
+•	            "name": "Internal",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selsX6tFD2vfqWY6R",
+•	            "name": "Client Delivery",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selrSNk3lQKuCizS7",
+•	            "name": "Marketing",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "sel3LxT4P4bkABlSA",
+•	            "name": "R&D",
+•	            "color": "greenLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Status",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selNQikqKOWtVBm2V",
+•	            "name": "Planned",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selDnQaky2ruLMvid",
+•	            "name": "In Progress",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "self7emShJLWqnKMa",
+•	            "name": "On Hold",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selGdldxCe4SAZosU",
+•	            "name": "Completed",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selA0I0SoSOx25ckR",
+•	            "name": "Cancelled",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "selsKBDaLE5ZIJ4eM",
+•	            "name": "Not Started",
+•	            "color": "orangeBright"
+•	          },
+•	          {
+•	            "id": "selo2tFhUnyfS8d9J",
+•	            "name": "Blocked",
+•	            "color": "orangeDark1"
+•	          },
+•	          {
+•	            "id": "seleZbFQ3C1nglr1c",
+•	            "name": "In Review",
+•	            "color": "pinkDark1"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Start Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Target End Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Actual End Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Project Owner",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldJxQo195qNWy4kW"
+•	      }
+•	    },
+•	    {
+•	      "name": "Budget Hours",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Notes",
+•	      "type": "multilineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Total Tasks",
+•	      "type": "count",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldjgDwUM891Wa20f"
+•	      }
+•	    },
+•	    {
+•	      "name": "Tasks",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblsqV5rL4AXKcyNr",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldRsVCQws1YG4USm"
+•	      }
+•	    },
+•	    {
+•	      "name": "Total Estimated Hours",
+•	      "type": "rollup",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldjgDwUM891Wa20f",
+•	        "fieldIdInLinkedTable": "fldQfbENKsO45I7Ed",
+•	        "referencedFieldIds": [],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Total Actual Hours",
+•	      "type": "rollup",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldjgDwUM891Wa20f",
+•	        "fieldIdInLinkedTable": "fldyYYIleAWZGMlRS",
+•	        "referencedFieldIds": [],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Hours Budget Remaining",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "{fldGzZH9LKXS3p3AG} - {fld1FoUfWnTbfUAus}",
+•	        "referencedFieldIds": [
+•	          "fldGzZH9LKXS3p3AG",
+•	          "fld1FoUfWnTbfUAus"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Project Duration (days)",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "IF({fldciQP6djXV2Bkys}, IF({fldi22WNX33jlHNRn}, DATETIME_DIFF({fldi22WNX33jlHNRn}, {fldciQP6djXV2Bkys}, 'days'), IF({fldjxI6ozDkem9Py2}, DATETIME_DIFF({fldjxI6ozDkem9Py2}, {fldciQP6djXV2Bkys}, 'days'), BLANK())), BLANK())",
+•	        "referencedFieldIds": [
+•	          "fldciQP6djXV2Bkys",
+•	          "fldi22WNX33jlHNRn",
+•	          "fldjxI6ozDkem9Py2"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Deal Value",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldjeP8cWF6Pz6DJh",
+•	        "fieldIdInLinkedTable": "fldK38vQ2BX9i6Eqt",
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Deal Stage",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldjeP8cWF6Pz6DJh",
+•	        "fieldIdInLinkedTable": "fldSwFK8bj2q4ba54",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Contacts",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldfGsNgrd3VEntQ8"
+•	      }
+•	    },
+•	    {
+•	      "name": "Automation & Content Ideas",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblGijo6W5FX42cr7",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldAT2649FLd4iyxN"
+•	      }
+•	    },
+•	    {
+•	      "name": "Priority",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selTNIEhe21manfKy",
+•	            "name": "Low",
+•	            "color": "cyanBright"
+•	          },
+•	          {
+•	            "id": "selD73FP6gdZTLlKO",
+•	            "name": "Medium",
+•	            "color": "tealBright"
+•	          },
+•	          {
+•	            "id": "sel8YjyzkySvqc0xo",
+•	            "name": "High",
+•	            "color": "yellowBright"
+•	          },
+•	          {
+•	            "id": "selVSfQ0w7HGITImG",
+•	            "name": "Critical",
+•	            "color": "redBright"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Health Status",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "IF(\r\n  {fldGzZH9LKXS3p3AG} > 0,\r\n    IF(\r\n      {fld1FoUfWnTbfUAus} / {fldGzZH9LKXS3p3AG} < 0.8,\r\n      IF({fld8gcMXGRqh94o62}, \"Green\", \"Yellow\"),\r\n      IF(\r\n        {fld1FoUfWnTbfUAus} / {fldGzZH9LKXS3p3AG} <= 1,\r\n        \"Yellow\",\r\n        \"Red\"\r\n      )\r\n    ),\r\n    BLANK()\r\n)",
+•	        "referencedFieldIds": [
+•	          "fldGzZH9LKXS3p3AG",
+•	          "fld1FoUfWnTbfUAus",
+•	          "fld8gcMXGRqh94o62"
+•	        ],
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Project Code",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Total Hours (Est + Actual)",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "{fldMANV7OFegqxIso}+{fld1FoUfWnTbfUAus}",
+•	        "referencedFieldIds": [
+•	          "fldMANV7OFegqxIso",
+•	          "fld1FoUfWnTbfUAus"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Tasks copy",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblOdLgNIjEpMpwFA",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "flddfLNctH5qIhSKv"
+•	      }
+•	    }
+•	  ],
+•	  "Tasks": [
+•	    {
+•	      "name": "Task Name",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Project",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblW3uDjnwNXKIWiR",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldjgDwUM891Wa20f"
+•	      }
+•	    },
+•	    {
+•	      "name": "Task Type",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selNYNrbHJubRTLdI",
+•	            "name": "Sales",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selcKMG1mUcVispGt",
+•	            "name": "Delivery",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selgitQ3IRj1avIMM",
+•	            "name": "Admin",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selH5IolEmtTXtIil",
+•	            "name": "Marketing",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selUBfQ6raXqddNxG",
+•	            "name": "R&D",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "selbJMOBDkKQj8tjV",
+•	            "name": "Support",
+•	            "color": "orangeLight2"
+•	          },
+•	          {
+•	            "id": "seli7QFB39O601DKQ",
+•	            "name": "John",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "sel8Lp6SGFwCIddU7",
+•	            "name": "Launch",
+•	            "color": "orangeBright"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Status",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selHfaufRB7Ta8PK2",
+•	            "name": "Backlog",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selrONK1pa1lorHta",
+•	            "name": "To Do",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "sel36c2Ie6yFzHeA9",
+•	            "name": "In Progress",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "seljgVgpZQxFXpQxm",
+•	            "name": "Waiting",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selCAnt9HG4QvP3gY",
+•	            "name": "Done",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "selba1ebjVkV79KEQ",
+•	            "name": "Not Started",
+•	            "color": "blueLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Priority",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "sel3dlGWa7W23O3e3",
+•	            "name": "Low",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "sel6Mab0bJLSQprcA",
+•	            "name": "Medium",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "seldC7OYgNxs5r02z",
+•	            "name": "High",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selgTtoK7b0ScfG5D",
+•	            "name": "Critical",
+•	            "color": "greenLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Assignee",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldd2VFinESGgNKxT"
+•	      }
+•	    },
+•	    {
+•	      "name": "Due Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Estimated Hours",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Actual Hours",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Contact",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fld720A7Ue4BwI4hs"
+•	      }
+•	    },
+•	    {
+•	      "name": "Notes / Steps",
+•	      "type": "multilineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Project Status",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldRsVCQws1YG4USm",
+•	        "fieldIdInLinkedTable": "fldjDOgllliBC3bpG",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Time Over/Under Estimate (hrs)",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "{fldyYYIleAWZGMlRS} - {fldQfbENKsO45I7Ed}",
+•	        "referencedFieldIds": [
+•	          "fldyYYIleAWZGMlRS",
+•	          "fldQfbENKsO45I7Ed"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Is Overdue?",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "IF(AND({fldwHrmqQorHnOhXX} != 'Done', {fldsmcnf7xG0nFD5N}, {fldsmcnf7xG0nFD5N} < TODAY()), 'Yes', 'No')",
+•	        "referencedFieldIds": [
+•	          "fldwHrmqQorHnOhXX",
+•	          "fldsmcnf7xG0nFD5N"
+•	        ],
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Days Until Due",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "IF({fldsmcnf7xG0nFD5N}, DATETIME_DIFF({fldsmcnf7xG0nFD5N}, TODAY(), 'days'), BLANK())",
+•	        "referencedFieldIds": [
+•	          "fldsmcnf7xG0nFD5N"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Assignee Email",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldbFxXLaHDq7lL53",
+•	        "fieldIdInLinkedTable": "fldQjLOMmoSZTX8P2",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Task Summary (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldXQxFgeXdACP0S8",
+•	          "fldnN95t8nyJPPS5V",
+•	          "fldwHrmqQorHnOhXX",
+•	          "fld6LTLYoIfnEEJdY"
+•	        ],
+•	        "prompt": [
+•	          "You are a professional project coordinator specializing in AI automation consulting, with expertise in summarizing project tasks for efficient team communication. Use a concise and informative tone suitable for internal status updates.\n\nTask description:\nReview the provided task name, notes, current status, and priority. Summarize the key details of the task, including its main objective, current progress, and any relevant context. Clearly state the current status and outline the next steps required to move the task forward, based only on the available information.\n\nOutput format:\nProvide a plain text summary of the task, including its purpose, current status, and recommended next steps. Do not include any headings, bullet points, or extra commentary. If there is not enough information to create a summary, output \"Insufficient information to summarize this task.\" Example: \"Prepare onboarding materials for new client. Status: In Progress. Next: Review draft with project lead and finalize by due date.\" (Real examples should be 1-3 sentences, tailored to the task details.)\n\nContext and Data:\nTask Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldXQxFgeXdACP0S8"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldnN95t8nyJPPS5V"
+•	            }
+•	          },
+•	          "\nStatus: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldwHrmqQorHnOhXX"
+•	            }
+•	          },
+•	          "\nPriority: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld6LTLYoIfnEEJdY"
+•	            }
+•	          },
+•	          "\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Suggested Next Action (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldXQxFgeXdACP0S8",
+•	          "fldnN95t8nyJPPS5V",
+•	          "fldwHrmqQorHnOhXX",
+•	          "fld6LTLYoIfnEEJdY"
+•	        ],
+•	        "prompt": [
+•	          "You are an expert task manager for an AI automation consulting team, skilled at identifying actionable next steps based on current task details and priorities. Use a clear, action-oriented tone suitable for internal team communication.\n\nTask description:\nAnalyze the provided task name, notes, status, and priority. Determine the most logical and immediate next action that should be taken to advance the task, considering its current progress and urgency. Base your suggestion only on the available information.\n\nOutput format:\nOutput a single, concise sentence describing the recommended next action. Do not include any additional text, explanations, or formatting. If there is not enough information to suggest a next action, output \"Insufficient information to suggest a next action.\" Example: \"Schedule a meeting with the client to review requirements.\" (Real examples should be specific to the task details and phrased as an action.)\n\nContext and Data:\nTask Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldXQxFgeXdACP0S8"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldnN95t8nyJPPS5V"
+•	            }
+•	          },
+•	          "\nStatus: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldwHrmqQorHnOhXX"
+•	            }
+•	          },
+•	          "\nPriority: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fld6LTLYoIfnEEJdY"
+•	            }
+•	          },
+•	          "\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Deal / Engagement (from Project)",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldRsVCQws1YG4USm",
+•	        "fieldIdInLinkedTable": "fldjeP8cWF6Pz6DJh",
+•	        "result": {
+•	          "type": "multipleRecordLinks",
+•	          "options": {
+•	            "isReversed": false,
+•	            "prefersSingleRecordLink": false
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Company (from Project)",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldRsVCQws1YG4USm",
+•	        "fieldIdInLinkedTable": "fldbjz3Fkl24qsysf",
+•	        "result": {
+•	          "type": "multipleRecordLinks",
+•	          "options": {
+•	            "isReversed": false,
+•	            "prefersSingleRecordLink": false
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Task Outcome",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selL3ZclELq3mTtwC",
+•	            "name": "Completed",
+•	            "color": "yellowLight1"
+•	          },
+•	          {
+•	            "id": "selcYbN6xnP0hZr5V",
+•	            "name": "Blocked",
+•	            "color": "orangeBright"
+•	          },
+•	          {
+•	            "id": "selsKvWgvABWcaPxK",
+•	            "name": "Needs Review",
+•	            "color": "redLight2"
+•	          },
+•	          {
+•	            "id": "selP2ek43bttUb5fj",
+•	            "name": "Deferred",
+•	            "color": "grayLight1"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Source",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selBfySGPbyitxGWQ",
+•	            "name": "Automation",
+•	            "color": "pinkBright"
+•	          },
+•	          {
+•	            "id": "selX9gMk88D4D7YCP",
+•	            "name": "Manual",
+•	            "color": "grayLight2"
+•	          },
+•	          {
+•	            "id": "selwVOGk838F390lJ",
+•	            "name": "Client",
+•	            "color": "blueDark1"
+•	          },
+•	          {
+•	            "id": "seluZFju1NM9q9YKR",
+•	            "name": "Internal",
+•	            "color": "greenDark1"
+•	          },
+•	          {
+•	            "id": "selmAUoWFxdayJk6Q",
+•	            "name": "Manual Add",
+•	            "color": "blueLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Start Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Meetings",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tbluaHyU67BEnbYjM",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldJFlhPTwtdBNm6z"
+•	      }
+•	    },
+•	    {
+•	      "name": "Estimated + Actual hours",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "{fldQfbENKsO45I7Ed}+{fldyYYIleAWZGMlRS}",
+•	        "referencedFieldIds": [
+•	          "fldQfbENKsO45I7Ed",
+•	          "fldyYYIleAWZGMlRS"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    }
+•	  ],
+•	  "Meetings": [
+•	    {
+•	      "name": "Meeting Title",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Date & Time",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Company",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblDVrIb8eKZIwRK0",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldZU2spMaj4fxyVl"
+•	      }
+•	    },
+•	    {
+•	      "name": "Contact(s)",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldJVp4hdIzTF9MEJ"
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Deal",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblWh3qaT0hQ15KHs",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldIBpPhfh7yAx3Bt"
+•	      }
+•	    },
+•	    {
+•	      "name": "Meeting Notes",
+•	      "type": "multilineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Meeting Outcome",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selIinntzdoeqlg6W",
+•	            "name": "Scheduled",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selOeReEHG1xQA0zc",
+•	            "name": "Completed",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selFEhmg9fi3VWk9K",
+•	            "name": "Cancelled",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "sel7ve2TAXVBo0NtT",
+•	            "name": "Rescheduled",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selbJt7lRw7xJkfTe",
+•	            "name": "No Show",
+•	            "color": "yellowLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Days Until Meeting",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "DATETIME_DIFF({fldpgUIGaCVs79Dvl}, TODAY(), 'days')",
+•	        "referencedFieldIds": [
+•	          "fldpgUIGaCVs79Dvl"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Company Name (Lookup)",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldFM209FiOVYeOZu",
+•	        "fieldIdInLinkedTable": "fldDRM2EhSqJz4lnh",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Deal Stage (Lookup)",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fld3IzhD0PvYQ0A7M",
+•	        "fieldIdInLinkedTable": "fldSwFK8bj2q4ba54",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Contact Names (Lookup)",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldpXB8nquDrr94Iq",
+•	        "fieldIdInLinkedTable": "fldj37RBOCMACZVPs",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Meeting Summary (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldvCdG87mpKpf4bE"
+•	        ],
+•	        "prompt": [
+•	          "You are an expert meeting summarizer for a consulting and automation firm, skilled at distilling conversations into concise, actionable summaries. Maintain a professional and neutral tone suitable for internal CRM records and client-facing documentation.\n\nTask description:\nCarefully review the meeting notes and identify the key discussion points, major decisions made, and any agreed-upon next steps. Focus on clarity and brevity, ensuring that the summary provides a quick reference for anyone reviewing the meeting record. Exclude irrelevant details and only include information present in the meeting notes.\n\nOutput format:\nSummarize the meeting in 2-5 sentences, covering the main discussion topics, decisions, and next steps. Use plain text with no headings, bullet points, or extra formatting. If you cannot identify any key points or next steps from the meeting notes, output \"No substantive meeting notes available.\" Do not include any additional text in the output. Example: \"Discussed automation opportunities for onboarding process. Decided to pilot a workflow in July. Next step: Client to provide access to current documentation.\"\n\nContext and Data:\nMeeting Notes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldvCdG87mpKpf4bE"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Suggested Next Actions (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldvCdG87mpKpf4bE",
+•	          "fldAISakvKlBLQTnS"
+•	        ],
+•	        "prompt": [
+•	          "You are an AI assistant specializing in sales and project management for an AI automation consulting company. Your role is to recommend clear, actionable next steps based on meeting notes and the current deal stage. Maintain a professional, concise, and proactive tone.\n\nTask description:\nAnalyze the provided meeting notes and consider the stage of the related deal. Based on this context, recommend 1-3 specific next actions for the team or client to move the engagement forward. Tailor your suggestions to the deal's progress and the meeting's content, ensuring they are practical and relevant. If the meeting notes do not provide enough context for actionable steps, indicate that clearly.\n\nOutput format:\nList 1-3 next actions in plain text, separated by semicolons. Do not use bullet points, numbers, or any extra formatting. If no next actions can be determined, output \"No actionable next steps identified.\" Do not include any additional text in the output. Example: \"Send follow-up email summarizing meeting outcomes; Schedule technical scoping session; Share automation case studies with client.\" (Real examples should be similar in length and specificity.)\n\nContext and Data:\nMeeting Notes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldvCdG87mpKpf4bE"
+•	            }
+•	          },
+•	          "\nDeal Stage: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldAISakvKlBLQTnS"
+•	            }
+•	          },
+•	          "\n\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Meeting Type",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selDzAW5YaoSg8Mq9",
+•	            "name": "Discover",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selLZmTL64DII8IKG",
+•	            "name": "Proposal Review",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selPJvPaHIBVPzQ8e",
+•	            "name": "Requierments Workshop",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selwPQCWjav1XLdd1",
+•	            "name": "Support Issue",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selO6PNrIv2bTkJMQ",
+•	            "name": "Status Update",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "sel8Lrq6hMpL2kS14",
+•	            "name": "Negotiation",
+•	            "color": "orangeLight2"
+•	          },
+•	          {
+•	            "id": "sel7bI2WFQBDaaoQ9",
+•	            "name": "Internal",
+•	            "color": "redLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Follow-Up Task",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblsqV5rL4AXKcyNr",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldZi4xK67qZ6Dwog"
+•	      }
+•	    },
+•	    {
+•	      "name": "Tasks copy",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblOdLgNIjEpMpwFA",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldl5UI63mur8Qugp"
+•	      }
+•	    }
+•	  ],
+•	  "Automation & Content Ideas": [
+•	    {
+•	      "name": "Idea Title",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Idea Type",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "seluTCDPIWAIKuZo0",
+•	            "name": "Internal Automation",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selXxkJDXrOhfwbSq",
+•	            "name": "Client Automation",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selhqoVkg5vDMG36J",
+•	            "name": "Product Feature",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selz2x6DtszYqIQIM",
+•	            "name": "Blog Post",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selWqJscLjNKJykQa",
+•	            "name": "Newsletter Topic",
+•	            "color": "yellowLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Description",
+•	      "type": "multilineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Impact",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Effort",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Priority",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Company / Client",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblDVrIb8eKZIwRK0",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldrcstZAOqiDkazt"
+•	      }
+•	    },
+•	    {
+•	      "name": "Status",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selRN0vsZQlcSO4BD",
+•	            "name": "Backlog",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selsMklCHAiNi44BK",
+•	            "name": "In Review",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "seliR3UcMEqyLYpvs",
+•	            "name": "Approved",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "sely5DnegZdewLPS5",
+•	            "name": "In Progress",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selffhkhVDlyxwF10",
+•	            "name": "Launched",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "selMSaeq9S9Z7vMzm",
+•	            "name": "Archived",
+•	            "color": "orangeLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Source",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selQb8JVc7YAR4U6s",
+•	            "name": "Manual",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selw9mbgT8a8empvv",
+•	            "name": "Email",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selUAlC2iZYNCPbUy",
+•	            "name": "Newsletter",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selgKVSbkIiADhQ2R",
+•	            "name": "Client Call",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selGCkiNkvHkq789A",
+•	            "name": "Other",
+•	            "color": "yellowLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Deals",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblWh3qaT0hQ15KHs",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldxgXzS7JAC5Q7Wz"
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Deal",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblWh3qaT0hQ15KHs",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldW8XjNg6XUJAUjp"
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Project",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblW3uDjnwNXKIWiR",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldXGSAQMpfsCg4OQ"
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Contact",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldO5K6AIy5zG7ck0"
+•	      }
+•	    },
+•	    {
+•	      "name": "Date Created",
+•	      "type": "createdTime",
+•	      "options": {
+•	        "result": {
+•	          "type": "dateTime",
+•	          "options": {
+•	            "dateFormat": {
+•	              "name": "local",
+•	              "format": "l"
+•	            },
+•	            "timeFormat": {
+•	              "name": "12hour",
+•	              "format": "h:mma"
+•	            },
+•	            "timeZone": "client"
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Date Approved",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Category",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selwYxDKOB5P9VvHs",
+•	            "name": "Content",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "seleKqhH9P89ZmeRv",
+•	            "name": "Internal Tool",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selOtMtBDqICPswkW",
+•	            "name": "Client Delivery",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selSIVR9NlgdEJSZY",
+•	            "name": "R&D",
+•	            "color": "greenLight2"
+•	          }
+•	        ]
+•	      }
+•	    }
+•	  ],
+•	  "Tasks copy": [
+•	    {
+•	      "name": "Task Name",
+•	      "type": "singleLineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Project",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblW3uDjnwNXKIWiR",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldF3tHgJndtYn0So"
+•	      }
+•	    },
+•	    {
+•	      "name": "Task Type",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selNYNrbHJubRTLdI",
+•	            "name": "Sales",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selcKMG1mUcVispGt",
+•	            "name": "Delivery",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "selgitQ3IRj1avIMM",
+•	            "name": "Admin",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selH5IolEmtTXtIil",
+•	            "name": "Marketing",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selUBfQ6raXqddNxG",
+•	            "name": "R&D",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "selbJMOBDkKQj8tjV",
+•	            "name": "Support",
+•	            "color": "orangeLight2"
+•	          },
+•	          {
+•	            "id": "seli7QFB39O601DKQ",
+•	            "name": "John",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "sel8Lp6SGFwCIddU7",
+•	            "name": "Launch",
+•	            "color": "orangeBright"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Status",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selHfaufRB7Ta8PK2",
+•	            "name": "Backlog",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "selrONK1pa1lorHta",
+•	            "name": "To Do",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "sel36c2Ie6yFzHeA9",
+•	            "name": "In Progress",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "seljgVgpZQxFXpQxm",
+•	            "name": "Waiting",
+•	            "color": "greenLight2"
+•	          },
+•	          {
+•	            "id": "selCAnt9HG4QvP3gY",
+•	            "name": "Done",
+•	            "color": "yellowLight2"
+•	          },
+•	          {
+•	            "id": "selba1ebjVkV79KEQ",
+•	            "name": "Not Started",
+•	            "color": "blueLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Priority",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "sel3dlGWa7W23O3e3",
+•	            "name": "Low",
+•	            "color": "blueLight2"
+•	          },
+•	          {
+•	            "id": "sel6Mab0bJLSQprcA",
+•	            "name": "Medium",
+•	            "color": "cyanLight2"
+•	          },
+•	          {
+•	            "id": "seldC7OYgNxs5r02z",
+•	            "name": "High",
+•	            "color": "tealLight2"
+•	          },
+•	          {
+•	            "id": "selgTtoK7b0ScfG5D",
+•	            "name": "Critical",
+•	            "color": "greenLight2"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Assignee",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fldzPLQEkTW8i0Ip2"
+•	      }
+•	    },
+•	    {
+•	      "name": "Due Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Estimated Hours",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Actual Hours",
+•	      "type": "number",
+•	      "options": {
+•	        "precision": 0
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Contact",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tblmkiPtPUFwdZj05",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": true,
+•	        "inverseLinkFieldId": "fldtPQLtRt83yV29B"
+•	      }
+•	    },
+•	    {
+•	      "name": "Notes / Steps",
+•	      "type": "multilineText",
+•	      "options": null
+•	    },
+•	    {
+•	      "name": "Project Status",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "flddfLNctH5qIhSKv",
+•	        "fieldIdInLinkedTable": "fldjDOgllliBC3bpG",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Time Over/Under Estimate (hrs)",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "{fldULOTHbP0rIZjJ1} - {fldc21P9HHSw7V5wm}",
+•	        "referencedFieldIds": [
+•	          "fldULOTHbP0rIZjJ1",
+•	          "fldc21P9HHSw7V5wm"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Is Overdue?",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "IF(AND({fldSuhxMNDv9p1fP6} != 'Done', {fldO92yB4MKspSBXW}, {fldO92yB4MKspSBXW} < TODAY()), 'Yes', 'No')",
+•	        "referencedFieldIds": [
+•	          "fldSuhxMNDv9p1fP6",
+•	          "fldO92yB4MKspSBXW"
+•	        ],
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Days Until Due",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "IF({fldO92yB4MKspSBXW}, DATETIME_DIFF({fldO92yB4MKspSBXW}, TODAY(), 'days'), BLANK())",
+•	        "referencedFieldIds": [
+•	          "fldO92yB4MKspSBXW"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Assignee Email",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "fldxsn877WHS9yJXc",
+•	        "fieldIdInLinkedTable": "fldQjLOMmoSZTX8P2",
+•	        "result": {
+•	          "type": "singleLineText"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Task Summary (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldjDnQCbch2E2YKh",
+•	          "fldJAZgP5CCbR2QX4",
+•	          "fldSuhxMNDv9p1fP6",
+•	          "fldsyJWklXjPGRH57"
+•	        ],
+•	        "prompt": [
+•	          "You are a professional project coordinator specializing in AI automation consulting, with expertise in summarizing project tasks for efficient team communication. Use a concise and informative tone suitable for internal status updates.\n\nTask description:\nReview the provided task name, notes, current status, and priority. Summarize the key details of the task, including its main objective, current progress, and any relevant context. Clearly state the current status and outline the next steps required to move the task forward, based only on the available information.\n\nOutput format:\nProvide a plain text summary of the task, including its purpose, current status, and recommended next steps. Do not include any headings, bullet points, or extra commentary. If there is not enough information to create a summary, output \"Insufficient information to summarize this task.\" Example: \"Prepare onboarding materials for new client. Status: In Progress. Next: Review draft with project lead and finalize by due date.\" (Real examples should be 1-3 sentences, tailored to the task details.)\n\nContext and Data:\nTask Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldjDnQCbch2E2YKh"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldJAZgP5CCbR2QX4"
+•	            }
+•	          },
+•	          "\nStatus: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldSuhxMNDv9p1fP6"
+•	            }
+•	          },
+•	          "\nPriority: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldsyJWklXjPGRH57"
+•	            }
+•	          },
+•	          "\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Suggested Next Action (AI)",
+•	      "type": "aiText",
+•	      "options": {
+•	        "referencedFieldIds": [
+•	          "fldjDnQCbch2E2YKh",
+•	          "fldJAZgP5CCbR2QX4",
+•	          "fldSuhxMNDv9p1fP6",
+•	          "fldsyJWklXjPGRH57"
+•	        ],
+•	        "prompt": [
+•	          "You are an expert task manager for an AI automation consulting team, skilled at identifying actionable next steps based on current task details and priorities. Use a clear, action-oriented tone suitable for internal team communication.\n\nTask description:\nAnalyze the provided task name, notes, status, and priority. Determine the most logical and immediate next action that should be taken to advance the task, considering its current progress and urgency. Base your suggestion only on the available information.\n\nOutput format:\nOutput a single, concise sentence describing the recommended next action. Do not include any additional text, explanations, or formatting. If there is not enough information to suggest a next action, output \"Insufficient information to suggest a next action.\" Example: \"Schedule a meeting with the client to review requirements.\" (Real examples should be specific to the task details and phrased as an action.)\n\nContext and Data:\nTask Name: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldjDnQCbch2E2YKh"
+•	            }
+•	          },
+•	          "\nNotes: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldJAZgP5CCbR2QX4"
+•	            }
+•	          },
+•	          "\nStatus: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldSuhxMNDv9p1fP6"
+•	            }
+•	          },
+•	          "\nPriority: ",
+•	          {
+•	            "field": {
+•	              "fieldId": "fldsyJWklXjPGRH57"
+•	            }
+•	          },
+•	          "\nOutput:\n"
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Related Deal / Engagement (from Project)",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "flddfLNctH5qIhSKv",
+•	        "fieldIdInLinkedTable": "fldjeP8cWF6Pz6DJh",
+•	        "result": {
+•	          "type": "multipleRecordLinks",
+•	          "options": {
+•	            "isReversed": false,
+•	            "prefersSingleRecordLink": false
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Company (from Project)",
+•	      "type": "multipleLookupValues",
+•	      "options": {
+•	        "isValid": true,
+•	        "recordLinkFieldId": "flddfLNctH5qIhSKv",
+•	        "fieldIdInLinkedTable": "fldbjz3Fkl24qsysf",
+•	        "result": {
+•	          "type": "multipleRecordLinks",
+•	          "options": {
+•	            "isReversed": false,
+•	            "prefersSingleRecordLink": false
+•	          }
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Task Outcome",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selL3ZclELq3mTtwC",
+•	            "name": "Completed",
+•	            "color": "yellowLight1"
+•	          },
+•	          {
+•	            "id": "selcYbN6xnP0hZr5V",
+•	            "name": "Blocked",
+•	            "color": "orangeBright"
+•	          },
+•	          {
+•	            "id": "selsKvWgvABWcaPxK",
+•	            "name": "Needs Review",
+•	            "color": "redLight2"
+•	          },
+•	          {
+•	            "id": "selP2ek43bttUb5fj",
+•	            "name": "Deferred",
+•	            "color": "grayLight1"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Source",
+•	      "type": "singleSelect",
+•	      "options": {
+•	        "choices": [
+•	          {
+•	            "id": "selBfySGPbyitxGWQ",
+•	            "name": "Automation",
+•	            "color": "pinkBright"
+•	          },
+•	          {
+•	            "id": "selX9gMk88D4D7YCP",
+•	            "name": "Manual",
+•	            "color": "grayLight2"
+•	          },
+•	          {
+•	            "id": "selwVOGk838F390lJ",
+•	            "name": "Client",
+•	            "color": "blueDark1"
+•	          },
+•	          {
+•	            "id": "seluZFju1NM9q9YKR",
+•	            "name": "Internal",
+•	            "color": "greenDark1"
+•	          }
+•	        ]
+•	      }
+•	    },
+•	    {
+•	      "name": "Start Date",
+•	      "type": "date",
+•	      "options": {
+•	        "dateFormat": {
+•	          "name": "local",
+•	          "format": "l"
+•	        }
+•	      }
+•	    },
+•	    {
+•	      "name": "Meetings",
+•	      "type": "multipleRecordLinks",
+•	      "options": {
+•	        "linkedTableId": "tbluaHyU67BEnbYjM",
+•	        "isReversed": false,
+•	        "prefersSingleRecordLink": false,
+•	        "inverseLinkFieldId": "fld5sbsbQLxFD0kYI"
+•	      }
+•	    },
+•	    {
+•	      "name": "Estimated + Actual hours",
+•	      "type": "formula",
+•	      "options": {
+•	        "isValid": true,
+•	        "formula": "{fldc21P9HHSw7V5wm}+{fldULOTHbP0rIZjJ1}",
+•	        "referencedFieldIds": [
+•	          "fldc21P9HHSw7V5wm",
+•	          "fldULOTHbP0rIZjJ1"
+•	        ],
+•	        "result": {
+•	          "type": "number",
+•	          "options": {
+•	            "precision": 0
+•	          }
+•	        }
+•	      }
+•	    }
+•	  ]
+•	}]
+•	HubSpot Pipeline Stages: [New Lead, Discovery Call Booked, Discovery Completed, Proposal Sent, Active Project, Closed Won, Closed Win]
+Immediate Action: Build the scaffolding: Initialize the React/Vite project, install all dependencies (flask, react-router-dom, tailwind, requests, pyairtable, hubspot-api-client, etc.), configure the Tailwind theme, and build the full UI layout using the branding provided. Use mock data where necessary.
+
