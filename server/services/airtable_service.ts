@@ -228,9 +228,9 @@ export async function createProject(project: ProjectInput): Promise<Project> {
     if (project.companyId) {
       fields['Company'] = [project.companyId];
     }
-    // Link to client if provided
+    // Link to contact if provided (Airtable field is 'Contacts')
     if (project.clientId) {
-      fields['Client'] = [project.clientId];
+      fields['Contacts'] = [project.clientId];
     }
 
     const record = await base(config.airtable.tables.projects).create(fields);
@@ -319,10 +319,10 @@ export async function updateProject(recordId: string, updates: Partial<ProjectIn
 export async function linkProjectToClient(projectId: string, clientId: string): Promise<Project> {
   try {
     const record = await base(config.airtable.tables.projects).update(projectId, {
-      'Client': [clientId]
+      'Contacts': [clientId]
     });
 
-    console.log(`[Airtable] Linked project ${projectId} to client ${clientId}`);
+    console.log(`[Airtable] Linked project ${projectId} to contact ${clientId}`);
 
     return {
       id: record.id,
