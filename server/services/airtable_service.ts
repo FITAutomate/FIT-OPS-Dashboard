@@ -2,7 +2,7 @@
  * Airtable Service Module
  * 
  * Encapsulates all Airtable API interactions for the CRM.
- * Handles fetching and transforming company/client records.
+ * Handles fetching, creating, and updating company and project records.
  */
 
 import Airtable from 'airtable';
@@ -24,9 +24,40 @@ export interface Company {
 }
 
 /**
+ * Interface representing a Project record in Airtable.
+ */
+export interface Project {
+  id: string;
+  name: string;
+  hubspotDealId: string;
+  budget: number;
+  status: string;
+  startDate: string;
+  description: string;
+  companyId?: string;
+}
+
+/**
+ * Interface for creating/updating a project
+ */
+export interface ProjectInput {
+  name: string;
+  hubspotDealId: string;
+  budget?: number;
+  status?: string;
+  startDate?: string;
+  description?: string;
+  companyId?: string;
+}
+
+/**
  * Initialize Airtable client with API key from config
  */
 const base = new Airtable({ apiKey: config.airtable.apiKey }).base(config.airtable.baseId);
+
+// ============================================
+// COMPANY OPERATIONS
+// ============================================
 
 /**
  * Fetches all company records from the Airtable 'Companies' table.
@@ -38,12 +69,11 @@ export async function getAllClients(): Promise<Company[]> {
   try {
     const records = await base(config.airtable.tables.companies)
       .select({
-        view: 'Grid view', // Default view
+        view: 'Grid view',
         maxRecords: 100
       })
       .all();
 
-    // Transform Airtable records into standardized format
     return records.map(record => ({
       id: record.id,
       name: (record.get('Company Name') as string) || '',
@@ -53,7 +83,6 @@ export async function getAllClients(): Promise<Company[]> {
       country: (record.get('Country / Region') as string) || '',
       status: (record.get('Status') as string) || 'Prospect',
       notes: (record.get('Notes') as string) || '',
-      // Extract logo URL from attachments array if exists
       logo: record.get('Logo') 
         ? (record.get('Logo') as any[])[0]?.url 
         : `https://ui-avatars.com/api/?name=${encodeURIComponent((record.get('Company Name') as string) || 'Company')}&background=007CE8&color=fff`
@@ -90,5 +119,190 @@ export async function getClientById(id: string): Promise<Company | null> {
   } catch (error: any) {
     console.error(`Airtable API Error (getClientById): ${error.message}`);
     return null;
+  }
+}
+
+// ============================================
+// PROJECT OPERATIONS (UPSERT SUPPORT)
+// ============================================
+
+/**
+ * Finds a project record by its associated HubSpot Deal ID.
+ * 
+ * This is the key lookup function for UPSERT operations:
+ * - If found: Existing record should be updated
+ * - If not found: New record should be created
+ * 
+ * @param {string} hubspotDealId - The HubSpot Deal ID to search for
+ * @returns {Promise<Project | null>} The project if found, null otherwise
+ */
+export async function findProjectByHubSpotDealId(hubspotDealId: string): Promise<Project | null> {
+  try {
+    const records = await base(config.airtable.tables.projects)
+      .select({
+        filterByFormula: `{HubSpot Deal ID} = '${hubspotDealId}'`,
+        maxRecords: 1
+      })
+      .firstPage();
+
+    if (records.length === 0) {
+      return null;
+    }
+
+    const record = records[0];
+    return {
+      id: record.id,
+      name: (record.get('Project Name') as string) || '',
+      hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
+      budget: parseFloat((record.get('Budget') as string) || '0'),
+      status: (record.get('Status') as string) || 'Active',
+      startDate: (record.get('Start Date') as string) || '',
+      description: (record.get('Description') as string) || '',
+      companyId: (record.get('Company') as string[])?.join(',') || undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (findProjectByHubSpotDealId): ${error.message}`);
+    return null;
+  }
+}
+
+/**
+ * Creates a new project record in Airtable.
+ * 
+ * Called when a HubSpot deal is "Closed Won" and no corresponding
+ * project exists in Airtable (INSERT case).
+ * 
+ * @param {ProjectInput} project - The project data to create
+ * @returns {Promise<Project>} The created project with its Airtable ID
+ * @throws {Error} If creation fails
+ */
+export async function createProject(project: ProjectInput): Promise<Project> {
+  try {
+    const fields: Record<string, any> = {
+      'Project Name': project.name,
+      'HubSpot Deal ID': project.hubspotDealId
+    };
+
+    // Add optional fields if provided
+    if (project.budget !== undefined) {
+      fields['Budget'] = project.budget;
+    }
+    if (project.status) {
+      fields['Status'] = project.status;
+    }
+    if (project.startDate) {
+      fields['Start Date'] = project.startDate;
+    }
+    if (project.description) {
+      fields['Description'] = project.description;
+    }
+    // Link to company if provided
+    if (project.companyId) {
+      fields['Company'] = [project.companyId];
+    }
+
+    const record = await base(config.airtable.tables.projects).create(fields);
+
+    console.log(`[Airtable] Created project: ${project.name} (HubSpot ID: ${project.hubspotDealId})`);
+
+    return {
+      id: record.id,
+      name: project.name,
+      hubspotDealId: project.hubspotDealId,
+      budget: project.budget || 0,
+      status: project.status || 'Active',
+      startDate: project.startDate || '',
+      description: project.description || '',
+      companyId: project.companyId
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (createProject): ${error.message}`);
+    throw new Error(`Failed to create project in Airtable: ${error.message}`);
+  }
+}
+
+/**
+ * Updates an existing project record in Airtable.
+ * 
+ * Only updates fields that are marked as "syncable" in the config.
+ * This prevents overwriting read-only or manually-edited fields.
+ * 
+ * @param {string} recordId - The Airtable record ID to update
+ * @param {Partial<ProjectInput>} updates - The fields to update
+ * @returns {Promise<Project>} The updated project
+ * @throws {Error} If update fails
+ */
+export async function updateProject(recordId: string, updates: Partial<ProjectInput>): Promise<Project> {
+  try {
+    const fields: Record<string, any> = {};
+
+    // Map input fields to Airtable field names
+    // Only include syncable fields from config
+    const syncableFields = config.fieldMapping.syncableFields;
+    const fieldMap = config.fieldMapping.dealToProject;
+
+    if (updates.name && syncableFields.includes('dealname')) {
+      fields['Project Name'] = updates.name;
+    }
+    if (updates.budget !== undefined && syncableFields.includes('amount')) {
+      fields['Budget'] = updates.budget;
+    }
+    if (updates.startDate && syncableFields.includes('closedate')) {
+      fields['Start Date'] = updates.startDate;
+    }
+    if (updates.description && syncableFields.includes('description')) {
+      fields['Description'] = updates.description;
+    }
+    if (updates.status) {
+      fields['Status'] = updates.status;
+    }
+
+    const record = await base(config.airtable.tables.projects).update(recordId, fields);
+
+    console.log(`[Airtable] Updated project: ${recordId}`);
+
+    return {
+      id: record.id,
+      name: (record.get('Project Name') as string) || '',
+      hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
+      budget: parseFloat((record.get('Budget') as string) || '0'),
+      status: (record.get('Status') as string) || 'Active',
+      startDate: (record.get('Start Date') as string) || '',
+      description: (record.get('Description') as string) || '',
+      companyId: (record.get('Company') as string[])?.join(',') || undefined
+    };
+  } catch (error: any) {
+    console.error(`Airtable API Error (updateProject): ${error.message}`);
+    throw new Error(`Failed to update project in Airtable: ${error.message}`);
+  }
+}
+
+/**
+ * Fetches all project records from Airtable.
+ * 
+ * @returns {Promise<Project[]>} Array of project objects
+ */
+export async function getAllProjects(): Promise<Project[]> {
+  try {
+    const records = await base(config.airtable.tables.projects)
+      .select({
+        view: 'Grid view',
+        maxRecords: 100
+      })
+      .all();
+
+    return records.map(record => ({
+      id: record.id,
+      name: (record.get('Project Name') as string) || '',
+      hubspotDealId: (record.get('HubSpot Deal ID') as string) || '',
+      budget: parseFloat((record.get('Budget') as string) || '0'),
+      status: (record.get('Status') as string) || 'Active',
+      startDate: (record.get('Start Date') as string) || '',
+      description: (record.get('Description') as string) || '',
+      companyId: (record.get('Company') as string[])?.join(',') || undefined
+    }));
+  } catch (error: any) {
+    console.error(`Airtable API Error (getAllProjects): ${error.message}`);
+    throw new Error(`Failed to fetch projects from Airtable: ${error.message}`);
   }
 }

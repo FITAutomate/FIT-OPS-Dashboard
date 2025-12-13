@@ -1,8 +1,8 @@
 /**
  * Central Configuration Management
  * 
- * Defines all external API configurations, table names, and field mappings.
- * All sensitive keys are loaded from environment variables.
+ * Defines all external API configurations, table names, field mappings,
+ * and webhook settings. All sensitive keys are loaded from environment variables.
  */
 
 export const config = {
@@ -26,55 +26,108 @@ export const config = {
    */
   hubspot: {
     accessToken: process.env.HUBSPOT_ACCESS_TOKEN || '',
+    clientSecret: process.env.HUBSPOT_CLIENT_SECRET || '', // For webhook signature verification
+    appId: process.env.HUBSPOT_APP_ID || '',
     pipelines: {
-      sales: 'default', // Default pipeline
-      stages: [
-        'New',
-        'Discovery',
-        'Proposal',
-        'Negotiation',
-        'Closed Won',
-        'Closed Lost'
-      ]
-    }
+      sales: 'default',
+      stages: {
+        new: 'appointmentscheduled',
+        discovery: 'qualifiedtobuy',
+        proposal: 'presentationscheduled',
+        negotiation: 'decisionmakerboughtin',
+        contractSent: 'contractsent',
+        closedWon: 'closedwon',
+        closedLost: 'closedlost'
+      }
+    },
+    /**
+     * Deal properties to fetch for sync operations
+     */
+    dealProperties: [
+      'dealname',
+      'amount',
+      'dealstage',
+      'closedate',
+      'pipeline',
+      'hs_object_id',
+      'hubspot_owner_id',
+      'description',
+      'notes_last_updated'
+    ],
+    /**
+     * Properties that trigger a sync when changed
+     */
+    syncTriggerProperties: [
+      'dealname',
+      'amount',
+      'dealstage',
+      'closedate'
+    ]
+  },
+
+  /**
+   * Webhook Configuration
+   */
+  webhooks: {
+    /**
+     * Secret for verifying HubSpot webhook signatures
+     * HubSpot signs webhooks using the client secret
+     */
+    hubspotSecret: process.env.HUBSPOT_CLIENT_SECRET || '',
+    /**
+     * Stages that should trigger a project creation in Airtable
+     */
+    projectCreationStages: ['closedwon'],
+    /**
+     * Whether to update existing records on webhook
+     */
+    enableUpdates: true
   },
 
   /**
    * Field Mapping between Airtable and HubSpot
-   * Maps Airtable field names to HubSpot property names for synchronization
+   * Maps HubSpot property names to Airtable field names for synchronization
    */
   fieldMapping: {
-    company: {
-      airtable: {
-        name: 'Company Name',
-        website: 'Website',
-        industry: 'Industry',
-        size: 'Company Size',
-        country: 'Country / Region',
-        status: 'Status'
-      },
-      hubspot: {
-        name: 'name',
-        website: 'website',
-        industry: 'industry',
-        size: 'numberofemployees',
-        country: 'country',
-        status: 'lifecyclestage'
-      }
+    /**
+     * Deal -> Project field mapping
+     * Key: HubSpot property | Value: Airtable field name
+     */
+    dealToProject: {
+      dealname: 'Project Name',
+      amount: 'Budget',
+      closedate: 'Start Date',
+      description: 'Description'
     },
-    deal: {
-      airtable: {
-        name: 'Deal Name',
-        amount: 'Deal Value',
-        stage: 'Stage',
-        closeDate: 'Close Date'
-      },
-      hubspot: {
-        name: 'dealname',
-        amount: 'amount',
-        stage: 'dealstage',
-        closeDate: 'closedate'
-      }
-    }
-  }
+    /**
+     * Fields that are "syncable" - can be updated on existing records
+     */
+    syncableFields: [
+      'dealname',
+      'amount',
+      'closedate',
+      'description'
+    ],
+    /**
+     * Read-only fields in Airtable (never updated by sync)
+     */
+    readOnlyFields: [
+      'HubSpot Deal ID', // The linking field - never changed
+      'Created Date'
+    ]
+  },
+
+  /**
+   * Project Status Mapping
+   * Maps HubSpot deal stages to Airtable project statuses
+   */
+  projectStatusMapping: {
+    closedwon: 'Active',
+    contractsent: 'Pending Approval',
+    decisionmakerboughtin: 'Negotiation',
+    presentationscheduled: 'Proposal',
+    qualifiedtobuy: 'Discovery',
+    appointmentscheduled: 'New',
+    closedlost: 'Cancelled'
+  } as Record<string, string>
 };
