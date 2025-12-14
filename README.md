@@ -2,8 +2,6 @@
 
 A modern, service-oriented Operations application integrating **HubSpot** and **Airtable** with a beautiful React frontend.
 
----
-
 ## 🏗️ Architecture Overview
 
 This project follows a **Service-Oriented Architecture** designed for modularity, maintainability, and clear separation of concerns.
