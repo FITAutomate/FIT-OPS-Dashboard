@@ -1,6 +1,6 @@
-# FIT OPS Dashboard - Modular Application
+# FIT Ops - Modular Dashboard Application
 
-A modern, service-oriented CRM application integrating **HubSpot** and **Airtable** with a beautiful React frontend.
+A modern, service-oriented Operations application integrating **HubSpot** and **Airtable** with a beautiful React frontend.
 
 ## 🏗️ Architecture Overview
 
