@@ -1,8 +1,6 @@
-# FIT CRM - Modular CRM Application
+# FIT OPS Dashboard - Modular Application
 
 A modern, service-oriented CRM application integrating **HubSpot** and **Airtable** with a beautiful React frontend.
-
----
 
 ## 🏗️ Architecture Overview
 
